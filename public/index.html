@@ -10,6 +10,10 @@
     *{box-sizing:border-box}
     html,body{height:100%}
     body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial; background:var(--bg); color:var(--ink); position:relative }
+    body::after{content:"";position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));
+      width:92px;height:60px;opacity:.18;z-index:0;
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="3" height="2" viewBox="0 0 3 2"><rect width="3" height="2" fill="%23aa151b"/><rect y="0.5" width="3" height="1" fill="%23f1bf00"/></svg>');
+      background-size:cover;background-repeat:no-repeat;pointer-events:none;}
     .container{max-width:1100px;margin:0 auto;padding:12px 14px 96px;position:relative;z-index:1}
 
     header.site{ text-align:center; padding:12px; background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06) }
@@ -85,7 +89,7 @@
       </svg>
       <div>
         <div class="percent" id="percent">0%</div>
-        <div class="sub" id="subtitle">Porcentaje de coincidencia FACHA</div>
+        <div class="sub" id="subtitle">Porcentaje de coincidencia</div>
       </div>
 
       <div class="share-box">
@@ -114,139 +118,12 @@
     </div>
   </div>
 
-  <!-- JS embebido -->
-  <script>
-  (function(){
-    const SITE_URL = location.origin;
+  <!-- IMPORTANTÍSIMO: defer y versión para caché -->
+  <script src="/app.js?v=12" defer></script>
 
-    const items = [
-      "Creo que la ley no debe permitir partidos que busquen la ruptura de España",
-      "Creo que en España se pagan demasiados impuestos",
-      "Creo que hay que quitar pagas vitalicias y aforamientos a políticos",
-      "Pienso que los ilegales que cometan delitos deben ser devueltos a sus países",
-      "No quiero en España culturas que denigran a la mujer",
-      "Apoyo la prisión permanente para los violadores de mujeres",
-      "Opino que hombres y mujeres no somos enemigos",
-      "Creo que hay que reforzar la vigilancia en nuestras fronteras",
-      "Pienso que los okupas deben ser expulsados de inmediato",
-      "Apoyo nuestro producto e industria frente a la competencia desleal",
-      "Hay que endurecer las penas para los criminales",
-      "Apoyo que los padres elijan la educación de sus hijos",
-      "Pienso que hay que conservar las tradiciones que nos unen",
-      "Apoyo un Sistema Sanitario y Educativo público común en España",
-      "Me gusta la bandera de España y no me avergüenzo de ella",
-      "Las instituciones públicas deben reducir el gasto político",
-      "Pienso que hay que garantizar la libertad de hablar en español",
-      "Respeto la identidad y orientación de cada persona, pero creo que en el deporte femenino no deben competir hombres biológicos aunque se identifiquen como mujeres.",
-      "Creo que la Policía y la Guardia Civil deberían tener más medios",
-      "Quiero que el bipartidismo deje de politizar la Justicia"
-    ];
-
-    const grid = document.getElementById('grid');
-    grid.innerHTML = items.map((t,i)=>{
-      const id = 'i'+(i+1);
-      return \`
-        <div class="card">
-          <input type="checkbox" id="\${id}">
-          <label class="card-body" for="\${id}">
-            <img src="img/\${i+1}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <span>\${t}</span>
-          </label>
-        </div>\`;
-    }).join('');
-
-    // donut / porcentaje
-    const R=52, CIRC=2*Math.PI*R;
-    const arc = document.getElementById('arc');
-    const percentEl = document.getElementById('percent');
-    function getChecked(){ return grid.querySelectorAll('input[type="checkbox"]:checked').length; }
-    function update(){
-      const p = Math.min(getChecked()*5,100);
-      arc.setAttribute('stroke-dasharray', \`\${(p/100)*CIRC} \${CIRC}\`);
-      percentEl.textContent = \`\${p}%\`;
-      document.title = \`Coincidencia \${p}%\`;
-    }
-    document.getElementById('form').addEventListener('change', update);
-
-    // Reiniciar
-    document.getElementById('reset').addEventListener('click', ()=>{
-      grid.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=false);
-      history.replaceState({},'',location.pathname);
-      update();
-    });
-
-    // Restaurar desde ?s=
-    const s = new URL(location.href).searchParams.get('s');
-    if(s && s.length===20){
-      const boxes = grid.querySelectorAll('input[type="checkbox"]');
-      boxes.forEach((c,i)=> c.checked = s[i]==='1');
-    }
-    update();
-
-    // Descargar imagen (arriba e inferior)
-    document.getElementById('download-img').addEventListener('click', e=>{ e.preventDefault(); downloadImage(); });
-    document.getElementById('download-bottom').addEventListener('click', e=>{ e.preventDefault(); downloadImage(); });
-
-    function drawShareCanvas(perc){
-      const W=1200,H=630, c=document.createElement('canvas'); c.width=W; c.height=H; const ctx=c.getContext('2d');
-      const stripe=H/3;
-      ctx.fillStyle='#aa151b'; ctx.fillRect(0,0,W,stripe);
-      ctx.fillStyle='#f1bf00'; ctx.fillRect(0,stripe,W,stripe);
-      ctx.fillStyle='#aa151b'; ctx.fillRect(0,2*stripe,W,stripe);
-
-      ctx.fillStyle='#ffffff'; ctx.font='bold 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('Encuesta rápida',60,110);
-      ctx.fillStyle='#111827'; ctx.font='bold 76px system-ui,-apple-system,Segoe UI,Roboto';
-      ctx.fillText(\`Coincidencia facha: \${perc}%\`,60,240);
-
-      const cx=220, cy=420, r=120, start=-Math.PI/2, end=start+(2*Math.PI)*(perc/100);
-      ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=30; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
-      ctx.strokeStyle='#63AF2B'; ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
-
-      ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto';
-      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(\`\${perc}%\`,cx,cy);
-
-      ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#000';
-      ctx.fillText('Haz tu encuesta aquí:',60,300);
-      ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL,60,340);
-      return c;
-    }
-
-    function downloadImage(){
-      const p = Math.min(getChecked()*5,100);
-      const canvas = drawShareCanvas(p);
-      const a=document.createElement('a');
-      a.download=\`resultado_\${p}.png\`;
-      a.href=canvas.toDataURL('image/png');
-      a.click();
-    }
-
-    // (Opcional) compartir: X/WhatsApp/Telegram/Facebook/Instagram
-    const enc = s => encodeURIComponent(s);
-    function keepUrl(){ const u=new URL(location.href); const bits=[...grid.querySelectorAll('input[type="checkbox"]')].map(c=>c.checked?'1':'0').join(''); u.searchParams.set('s',bits); history.replaceState(null,'',u.toString()); return u.toString(); }
-    function share(net){
-      const p=Math.min(getChecked()*5,100);
-      const url=keepUrl();
-      const msg=\`Coincidencia facha: \${p}%\\nHaz tu encuesta aquí: \${url}\`;
-      let href=url;
-      if(net==='x')  href=\`https://twitter.com/intent/tweet?text=\${enc(msg)}\`;
-      if(net==='wh') href=\`https://api.whatsapp.com/send?text=\${enc(msg)}\`;
-      if(net==='tg') href=\`https://t.me/share/url?url=\${enc(url)}&text=\${enc(msg)}\`;
-      if(net==='fb') href=\`https://www.facebook.com/sharer/sharer.php?u=\${enc(url)}\`;
-      if(net==='ig'){
-        const canvas = drawShareCanvas(p);
-        const a=document.createElement('a'); a.download=\`resultado_\${p}.png\`; a.href=canvas.toDataURL('image/png'); a.click();
-        try{ navigator.clipboard.writeText(msg); }catch(_){}
-        alert('Se copió el texto y se descargó la imagen. Súbela a Instagram manualmente.');
-        return;
-      }
-      window.open(href,'_blank');
-    }
-    document.getElementById('share-x').addEventListener('click', ()=>share('x'));
-    document.getElementById('share-wh').addEventListener('click', ()=>share('wh'));
-    document.getElementById('share-tg').addEventListener('click', ()=>share('tg'));
-    document.getElementById('share-fb').addEventListener('click', ()=>share('fb'));
-    document.getElementById('share-ig').addEventListener('click', ()=>share('ig'));
-  })();
-  </script>
+  <!-- Fix donut en móvil (por si algún estilo lo encoge) -->
+  <style>
+    .donut{flex:0 0 64px;width:64px;height:64px;display:block;overflow:visible}
+  </style>
 </body>
 </html>
