@@ -1,5 +1,5 @@
 // === Config ===
-const API_BASE = '';
+const API_BASE = '';                 // mismo origen
 const SITE_URL = location.origin;
 
 // === Ítems ===
@@ -21,7 +21,7 @@ const items = [
   "Me gusta la bandera de España y no me avergüenzo de ella",
   "Las instituciones públicas deben reducir el gasto político",
   "Pienso que hay que garantizar la libertad de hablar en español",
-  "Respeto la orientación de cada persona, pero creo que en el deporte femenino no deben competir hombres biológicos",
+  "Respeto la identidad y orientación de cada persona, pero creo que en el deporte femenino no deben competir hombres biológicos",
   "Creo que la Policía y la Guardia Civil deberían tener más medios",
   "Quiero que el bipartidismo deje de politizar la Justicia"
 ];
@@ -42,16 +42,15 @@ window.addEventListener('DOMContentLoaded', () => {
     `);
   });
 
-  // Compartir (si los usas)
-  byId('share-x')  ?.addEventListener('click', ()=>shareTo('x'));
+  // Enlaces de compartir (arriba)
+  byId('share-x') ?.addEventListener('click', ()=>shareTo('x'));
   byId('share-wh')?.addEventListener('click', ()=>shareTo('wh'));
   byId('share-tg')?.addEventListener('click', ()=>shareTo('tg'));
   byId('share-fb')?.addEventListener('click', ()=>shareTo('fb'));
   byId('share-ig')?.addEventListener('click', ()=>shareTo('ig'));
 
-  // Descargar (arriba e inferior)
+  // Descargar (abajo)
   byId('download-bottom')?.addEventListener('click', downloadImage);
-  byId('download-img')   ?.addEventListener('click', downloadImage); // por si tienes el botón superior con este id
 
   // Reiniciar
   byId('reset')?.addEventListener('click', ()=>{
@@ -80,7 +79,7 @@ function update(){
   const p = Math.min(getChecked()*5,100);
   byId('arc').setAttribute('stroke-dasharray', `${(p/100)*CIRC} ${CIRC}`);
   byId('percent').textContent = `${p}%`;
-  byId('subtitle')?.textContent = `Porcentaje de coincidencia`;
+  byId('subtitle').textContent = `Porcentaje de coincidencia`;
   document.title = `Coincidencia ${p}%`;
 }
 
@@ -90,34 +89,23 @@ function keepUrl(){ const url=new URL(location.href); url.searchParams.set('s', 
 function drawShareCanvas(perc){
   const W=1200,H=630, c=document.createElement('canvas'); c.width=W; c.height=H; const ctx=c.getContext('2d');
   const stripe=H/3;
-  // fondo bandera
   ctx.fillStyle='#aa151b'; ctx.fillRect(0,0,W,stripe);
   ctx.fillStyle='#f1bf00'; ctx.fillRect(0,stripe,W,stripe);
   ctx.fillStyle='#aa151b'; ctx.fillRect(0,2*stripe,W,stripe);
 
-  // títulos
   ctx.fillStyle='#ffffff'; ctx.font='bold 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('Encuesta rápida',60,110);
-  ctx.fillStyle='#111827'; ctx.font='bold 76px system-ui,-apple-system,Segoe UI,Roboto';
-  // >>> aquí el cambio pedido:
-  ctx.fillText(`Coincidencia facha: ${perc}%`,60,240);
-
-  // donut
+  ctx.fillStyle='#111827'; ctx.font='bold 76px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(`Coincidencia: ${perc}%`,60,240);
   const cx=220, cy=420, r=120, start=-Math.PI/2, end=start+(2*Math.PI)*(perc/100);
   ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=30; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
   ctx.strokeStyle='#63AF2B'; ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
-
-  // % dentro del donut
-  ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto';
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(`${perc}%`,cx,cy);
-
-  // URL
+  ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(`${perc}%`,cx,cy);
   ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#000';
   ctx.fillText('Haz tu encuesta aquí:',60,300);
   ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL,60,340);
   return c;
 }
 
-// === Backend helpers (si tienes /api/share en tu server) ===
+// === Backend helpers (opcional: registro de estadísticas si tu server tiene /api/share) ===
 async function logEvent(perc, action){
   try{
     await fetch(`${API_BASE}/api/share`, {
@@ -130,7 +118,7 @@ async function logEvent(perc, action){
 }
 
 // === Compartir / Descargar ===
-const shareText = (p,u,img)=> img?`Coincidencia facha: ${p}%\nHaz tu encuesta aquí: ${u}\nImagen: ${img}`:`Coincidencia facha: ${p}%\nHaz tu encuesta aquí: ${u}`;
+const shareText = (p,u,img)=> img?`Coincidencia: ${p}%\nHaz tu encuesta aquí: ${u}\nImagen: ${img}`:`Coincidencia: ${p}%\nHaz tu encuesta aquí: ${u}`;
 
 async function toBase64(c){ const b=await new Promise(r=>c.toBlob(r,'image/png',0.95)); return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result.split(',')[1]); fr.readAsDataURL(b); }); }
 async function upload(c){
@@ -147,11 +135,12 @@ async function shareTo(net){
   const url=keepUrl();
   const canvas=drawShareCanvas(perc);
 
+  // Web Share con archivo para X/IG si se puede
   try{
     const blob = await new Promise(r=>canvas.toBlob(r,'image/png',0.95));
     const file = new File([blob], `resultado_${perc}.png`, {type:'image/png'});
     if (navigator.canShare && navigator.canShare({files:[file]}) && (net==='x'||net==='ig')){
-      await navigator.share({title:'Encuesta', text:`Coincidencia facha: ${perc}% · ${url}`, files:[file]});
+      await navigator.share({title:'Encuesta', text:`Coincidencia: ${perc}% · ${url}`, files:[file]});
       return;
     }
   }catch(_){}
@@ -163,7 +152,7 @@ async function shareTo(net){
 
   let href=url;
   if(net==='x')  href=`https://twitter.com/intent/tweet?text=${encM}`;
-  if(net==='wh') href=`https://api.whatsapp.com/send?text=${encM}`;
+  if(net==='wh') href=`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
   if(net==='tg') href=`https://t.me/share/url?url=${encU}&text=${encM}`;
   if(net==='fb') href=`https://www.facebook.com/sharer/sharer.php?u=${encU}`;
   if(net==='ig'){
@@ -177,10 +166,7 @@ async function shareTo(net){
 
 async function downloadImage(){
   const perc = Math.min(getChecked()*5,100);
-  await logEvent(perc,'download');
+  await logEvent(perc,'download');         // si tu backend lo usa
   const canvas = drawShareCanvas(perc);
-  const a=document.createElement('a');
-  a.download=`resultado_${perc}.png`;
-  a.href=canvas.toDataURL('image/png');
-  a.click();
+  const a=document.createElement('a'); a.download=`resultado_${perc}.png`; a.href=canvas.toDataURL('image/png'); a.click();
 }
