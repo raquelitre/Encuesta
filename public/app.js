@@ -21,7 +21,7 @@ const items = [
   "Me gusta la bandera de España y no me avergüenzo de ella",
   "Las instituciones públicas deben reducir el gasto político",
   "Pienso que hay que garantizar la libertad de hablar en español",
-  "No quiero hombres biológicos en el deporte femenino",
+  "Respeto la orientación de cada persona, pero creo que en el deporte femenino no deben competir hombres biológicos",
   "Creo que la Policía y la Guardia Civil deberían tener más medios",
   "Quiero que el bipartidismo deje de politizar la Justicia"
 ];
