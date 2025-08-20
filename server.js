@@ -1,30 +1,24 @@
-// server.js  —  Backend Express + PostgreSQL (Render)
+// server.js — Express + PostgreSQL (Render) — CommonJS
 
-import express from "express";
-import cors from "cors";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
-import { randomUUID } from "crypto";
-import { Pool } from "pg";
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const path = require("path");
+const fs = require("fs");
+const crypto = require("crypto");
+const { Pool } = require("pg");
 
-// ----- paths -----
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// ----- app -----
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ---------- Middlewares ----------
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
+app.use(bodyParser.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// ====== PostgreSQL (Render) ======
+// ---------- PostgreSQL ----------
 if (!process.env.DATABASE_URL) {
-  console.error(
-    "❌ Falta DATABASE_URL en Environment Variables. Pon la Internal Database URL de tu Postgres."
-  );
+  console.error("❌ Falta DATABASE_URL. Añádela en Render → Settings → Environment.");
 }
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -61,9 +55,11 @@ async function ensureSchema() {
     client.release();
   }
 }
-await ensureSchema();
+ensureSchema().catch(e => {
+  console.error("Error ensureSchema:", e);
+});
 
-// ====== util ======
+// ---------- Utils ----------
 function validBits(bits) {
   return typeof bits === "string" && /^[01]{20}$/.test(bits);
 }
@@ -73,45 +69,43 @@ function clampPercent(p) {
   return Math.max(0, Math.min(100, Math.round(n)));
 }
 
-// ====== Basic auth para stats ======
+// ---------- Basic Auth (para stats) ----------
 function basicAuth(req, res, next) {
   const u = process.env.STATS_USER || "admin";
   const p = process.env.STATS_PASS || "changeme";
   const hdr = req.headers.authorization || "";
   if (hdr.startsWith("Basic ")) {
-    const [user, pass] = Buffer.from(hdr.slice(6), "base64")
-      .toString("utf8")
-      .split(":");
+    const [user, pass] = Buffer.from(hdr.slice(6), "base64").toString("utf8").split(":");
     if (user === u && pass === p) return next();
   }
-  res.setHeader('WWW-Authenticate', 'Basic realm="Stats"');
+  res.setHeader("WWW-Authenticate", 'Basic realm="Stats"');
   res.status(401).send("Auth required");
 }
 
-// ====== guardar respuesta ======
+// ---------- Lógica de guardado ----------
 async function saveRespuesta({ bits, percent, user_agent, action }) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const ins = await client.query(
+    const r = await client.query(
       "INSERT INTO respuestas(percent,bits,user_agent,action) VALUES ($1,$2,$3,$4) RETURNING id",
-      [percent, bits, user_agent || "", action || "share"]
+      [percent, bits || "", user_agent || "", action || "share"]
     );
-    const id = ins.rows[0].id;
+    const id = r.rows[0].id;
 
     if (validBits(bits)) {
-      const values = [];
       const params = [];
+      const tuples = [];
       let k = 1;
       for (let i = 0; i < 20; i++) {
         if (bits[i] === "1") {
-          values.push(`($${k++}, $${k++})`);
+          tuples.push(`($${k++}, $${k++})`);
           params.push(id, i + 1);
         }
       }
-      if (values.length) {
+      if (tuples.length) {
         await client.query(
-          `INSERT INTO respuestas_detalle(respuesta_id,opcion) VALUES ${values.join(",")}`,
+          `INSERT INTO respuestas_detalle(respuesta_id,opcion) VALUES ${tuples.join(",")}`,
           params
         );
       }
@@ -126,7 +120,7 @@ async function saveRespuesta({ bits, percent, user_agent, action }) {
   }
 }
 
-// ====== API: registrar compartir/descargar ======
+// ---------- API: registrar compartir/descargar ----------
 app.post("/api/share", async (req, res) => {
   try {
     const bits = (req.body?.bits || "").toString();
@@ -134,7 +128,6 @@ app.post("/api/share", async (req, res) => {
     const action = (req.body?.action || "share").toString(); // 'share' | 'download'
     const ua = (req.body?.user_agent || "").toString().slice(0, 200);
 
-    // bits puede venir vacío desde algunos clientes, pero si llega debe ser válido
     if (bits && !validBits(bits)) {
       return res.status(400).json({ ok: false, error: "BITS_INVALID" });
     }
@@ -147,7 +140,7 @@ app.post("/api/share", async (req, res) => {
   }
 });
 
-// ====== API: subir imagen generada (para compartir) ======
+// ---------- API: imagen compartible (devuelve URL) ----------
 const TMP_DIR = path.join(__dirname, "tmp_share");
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 app.use("/share", express.static(TMP_DIR, { maxAge: "365d", immutable: true }));
@@ -157,7 +150,7 @@ app.post("/api/share-image", async (req, res) => {
     const b64 = req.body?.image_base64;
     if (!b64) return res.status(400).json({ error: "MISSING_IMAGE" });
     const buf = Buffer.from(b64, "base64");
-    const id = randomUUID();
+    const id = crypto.randomUUID();
     const filename = path.join(TMP_DIR, `${id}.png`);
     fs.writeFileSync(filename, buf);
     const base = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || "";
@@ -169,7 +162,7 @@ app.post("/api/share-image", async (req, res) => {
   }
 });
 
-// ====== API: estadísticas (protegidas) ======
+// ---------- API: estadísticas (protegidas) ----------
 app.get("/api/stats/percent", basicAuth, async (_req, res) => {
   try {
     const client = await pool.connect();
@@ -183,7 +176,7 @@ app.get("/api/stats/percent", basicAuth, async (_req, res) => {
        FROM respuestas`
     );
 
-    // buckets 0..100 en pasos de 5 (percent es INTEGER, /5 es división entera)
+    // buckets 0..100 paso 5
     const buckets = [];
     for (let b = 0; b <= 100; b += 5) {
       const r = await client.query(
@@ -223,12 +216,14 @@ app.get("/api/stats/items", basicAuth, async (_req, res) => {
   }
 });
 
-// proteger /stats.html
+// proteger /stats.html con Basic Auth
 app.get("/stats.html", basicAuth, (req, res, next) => next());
 
 // health
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
+// start
 app.listen(PORT, () => {
   console.log("🚀 Server escuchando en", PORT);
 });
+
