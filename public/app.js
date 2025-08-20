@@ -1,5 +1,5 @@
 // === Config ===
-const API_BASE = '';
+const API_BASE = '';                  // mismo origen
 const SITE_URL = location.origin;
 
 // === Ítems ===
@@ -21,104 +21,107 @@ const items = [
   "Me gusta la bandera de España y no me avergüenzo de ella",
   "Las instituciones públicas deben reducir el gasto político",
   "Pienso que hay que garantizar la libertad de hablar en español",
-  // frase pedida, respetuosa:
   "Respeto la identidad y orientación de cada persona, pero creo que en el deporte femenino no deben competir hombres biológicos aunque se identifiquen como mujeres.",
   "Creo que la Policía y la Guardia Civil deberían tener más medios",
   "Quiero que el bipartidismo deje de politizar la Justicia"
 ];
 
-// === Render inicial ===
-window.addEventListener('DOMContentLoaded', () => {
-  const grid = document.getElementById('grid');
-  items.forEach((text, i) => {
+// === Helpers ===
+const $ = (sel,root=document)=>root.querySelector(sel);
+const $$= (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+
+// === Render y eventos ===
+document.addEventListener('DOMContentLoaded', () => {
+  // Render de tarjetas
+  const grid = $('#grid');
+  grid.innerHTML = items.map((t,i)=>{
     const id = `i${i+1}`;
-    grid.insertAdjacentHTML('beforeend', `
+    return `
       <div class="card">
         <input type="checkbox" id="${id}">
         <label class="card-body" for="${id}">
           <img src="img/${i+1}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-          <span>${text}</span>
+          <span>${t}</span>
         </label>
       </div>
-    `);
-  });
+    `;
+  }).join('');
 
-  // Compartir (si los usas)
-  byId('share-x')  ?.addEventListener('click', ()=>shareTo('x'));
-  byId('share-wh')?.addEventListener('click', ()=>shareTo('wh'));
-  byId('share-tg')?.addEventListener('click', ()=>shareTo('tg'));
-  byId('share-fb')?.addEventListener('click', ()=>shareTo('fb'));
-  byId('share-ig')?.addEventListener('click', ()=>shareTo('ig'));
+  // Listeners compartir
+  $('#share-x')  ?.addEventListener('click', ()=>shareTo('x'));
+  $('#share-wh')?.addEventListener('click', ()=>shareTo('wh'));
+  $('#share-tg')?.addEventListener('click', ()=>shareTo('tg'));
+  $('#share-fb')?.addEventListener('click', ()=>shareTo('fb'));
+  $('#share-ig')?.addEventListener('click', ()=>shareTo('ig'));
 
   // Descargar (arriba e inferior)
-  byId('download-bottom')?.addEventListener('click', downloadImage);
-  byId('download-img')   ?.addEventListener('click', downloadImage); // por si tienes el botón superior con este id
+  $('#download-img')   ?.addEventListener('click', (e)=>{e.preventDefault(); downloadImage();});
+  $('#download-bottom')?.addEventListener('click', (e)=>{e.preventDefault(); downloadImage();});
 
   // Reiniciar
-  byId('reset')?.addEventListener('click', ()=>{
-    document.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false);
-    update(); history.replaceState({},'',location.pathname);
+  $('#reset')?.addEventListener('click', ()=>{
+    $$('input[type="checkbox"]').forEach(c=>c.checked=false);
+    update();
+    history.replaceState({},'',location.pathname);
   });
 
   // Cambios en la encuesta
-  byId('form').addEventListener('change', update);
+  $('#form').addEventListener('change', update);
 
-  // Restaurar desde ?s=
+  // Estado desde ?s=
   const s=new URL(location.href).searchParams.get('s'); if(s && s.length===20) setBits(s);
+
+  // Pintar inicial
   update();
 });
 
-// === Helpers DOM ===
-const byId = id => document.getElementById(id);
-
-// === Porcentaje / donut ===
-const radius=52, CIRC=2*Math.PI*radius;
-function getChecked(){ return document.querySelectorAll('#grid input[type="checkbox"]:checked').length; }
-function getBits(){ return Array.from(document.querySelectorAll('#grid input[type="checkbox"]')).map(c=>c.checked?'1':'0').join(''); }
-function setBits(bits){ document.querySelectorAll('#grid input[type="checkbox"]').forEach((c,i)=> c.checked = bits[i]==='1'); }
+// === Donut / porcentaje ===
+const R=52, CIRC=2*Math.PI*R;
+function getChecked(){ return $$('input[type="checkbox"]:checked', $('#grid')).length; }
+function getBits(){ return $$('input[type="checkbox"]', $('#grid')).map(c=>c.checked?'1':'0').join(''); }
+function setBits(bits){ $$('input[type="checkbox"]', $('#grid')).forEach((c,i)=> c.checked = bits[i]==='1'); }
 
 function update(){
   const p = Math.min(getChecked()*5,100);
-  byId('arc').setAttribute('stroke-dasharray', `${(p/100)*CIRC} ${CIRC}`);
-  byId('percent').textContent = `${p}%`;
-  byId('subtitle')?.textContent = `Porcentaje de coincidencia`;
+  $('#arc').setAttribute('stroke-dasharray', `${(p/100)*CIRC} ${CIRC}`);
+  $('#percent').textContent = `${p}%`;
+  $('#subtitle')?.textContent = `Porcentaje de coincidencia`;  // texto visible
   document.title = `Coincidencia ${p}%`;
 }
 
-function keepUrl(){ const url=new URL(location.href); url.searchParams.set('s', getBits()); history.replaceState(null,'',url.toString()); return url.toString(); }
+function keepUrl(){
+  const url=new URL(location.href);
+  url.searchParams.set('s', getBits());
+  history.replaceState(null,'',url.toString());
+  return url.toString();
+}
 
-// === Canvas con bandera ===
+// === Canvas para compartir/descargar ===
 function drawShareCanvas(perc){
   const W=1200,H=630, c=document.createElement('canvas'); c.width=W; c.height=H; const ctx=c.getContext('2d');
   const stripe=H/3;
-  // fondo bandera
   ctx.fillStyle='#aa151b'; ctx.fillRect(0,0,W,stripe);
   ctx.fillStyle='#f1bf00'; ctx.fillRect(0,stripe,W,stripe);
   ctx.fillStyle='#aa151b'; ctx.fillRect(0,2*stripe,W,stripe);
 
-  // títulos
   ctx.fillStyle='#ffffff'; ctx.font='bold 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('Encuesta rápida',60,110);
   ctx.fillStyle='#111827'; ctx.font='bold 76px system-ui,-apple-system,Segoe UI,Roboto';
-  // >>> aquí el cambio pedido:
   ctx.fillText(`Coincidencia facha: ${perc}%`,60,240);
 
-  // donut
   const cx=220, cy=420, r=120, start=-Math.PI/2, end=start+(2*Math.PI)*(perc/100);
   ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=30; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
   ctx.strokeStyle='#63AF2B'; ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
 
-  // % dentro del donut
   ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto';
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(`${perc}%`,cx,cy);
 
-  // URL
   ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#000';
   ctx.fillText('Haz tu encuesta aquí:',60,300);
   ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL,60,340);
   return c;
 }
 
-// === Backend helpers (si tienes /api/share en tu server) ===
+// === Registro en backend (opcional) ===
 async function logEvent(perc, action){
   try{
     await fetch(`${API_BASE}/api/share`, {
@@ -130,7 +133,7 @@ async function logEvent(perc, action){
   }catch(_){}
 }
 
-// === Compartir / Descargar ===
+// === Compartir/descargar ===
 const shareText = (p,u,img)=> img?`Coincidencia facha: ${p}%\nHaz tu encuesta aquí: ${u}\nImagen: ${img}`:`Coincidencia facha: ${p}%\nHaz tu encuesta aquí: ${u}`;
 
 async function toBase64(c){ const b=await new Promise(r=>c.toBlob(r,'image/png',0.95)); return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result.split(',')[1]); fr.readAsDataURL(b); }); }
@@ -143,10 +146,10 @@ async function upload(c){
 }
 
 async function shareTo(net){
-  const perc=Math.min(getChecked()*5,100);
+  const perc = Math.min(getChecked()*5,100);
   await logEvent(perc,'share');
-  const url=keepUrl();
-  const canvas=drawShareCanvas(perc);
+  const url = keepUrl();
+  const canvas = drawShareCanvas(perc);
 
   try{
     const blob = await new Promise(r=>canvas.toBlob(r,'image/png',0.95));
@@ -161,7 +164,6 @@ async function shareTo(net){
   const message = shareText(perc, url, imgUrl);
   const encM = encodeURIComponent(message);
   const encU = encodeURIComponent(url);
-
   let href=url;
   if(net==='x')  href=`https://twitter.com/intent/tweet?text=${encM}`;
   if(net==='wh') href=`https://api.whatsapp.com/send?text=${encM}`;
