@@ -48,6 +48,7 @@ window.addEventListener('DOMContentLoaded', () => {
   byId('share-tg')?.addEventListener('click', ()=>shareTo('tg'));
   byId('share-fb')?.addEventListener('click', ()=>shareTo('fb'));
   byId('share-ig')?.addEventListener('click', ()=>shareTo('ig'));
+ byId('download-bottom')?.addEventListener('click', downloadImage);
 
   // Descargar (abajo)
   byId('download-bottom')?.addEventListener('click', downloadImage);
