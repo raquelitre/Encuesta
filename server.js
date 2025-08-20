@@ -1,142 +1,234 @@
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import fs from 'fs';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import { randomUUID } from 'crypto';
+// server.js  —  Backend Express + PostgreSQL (Render)
 
+import express from "express";
+import cors from "cors";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { randomUUID } from "crypto";
+import { Pool } from "pg";
+
+// ----- paths -----
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ----- app -----
 const app = express();
 const PORT = process.env.PORT || 3000;
-const __dirname_ = path.resolve();
 
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.static(path.join(__dirname, "public")));
 
-// Data dirs
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname_, 'data');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-const DB_PATH = path.join(DATA_DIR, 'responses.db');
-const IMG_DIR = path.join(DATA_DIR, 'share_imgs');
-if (!fs.existsSync(IMG_DIR)) fs.mkdirSync(IMG_DIR, { recursive: true });
+// ====== PostgreSQL (Render) ======
+if (!process.env.DATABASE_URL) {
+  console.error(
+    "❌ Falta DATABASE_URL en Environment Variables. Pon la Internal Database URL de tu Postgres."
+  );
+}
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }, // Render Postgres
+});
 
-let db;
-(async () => {
-  db = await open({ filename: DB_PATH, driver: sqlite3.Database });
-  const schemaPath = path.join(__dirname_, 'schema.sql');
-  await db.exec(fs.readFileSync(schemaPath, 'utf8'));
-})();
+// Crear tablas si no existen
+async function ensureSchema() {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS respuestas (
+      id SERIAL PRIMARY KEY,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      percent INTEGER NOT NULL,
+      bits VARCHAR(20) NOT NULL,
+      user_agent TEXT,
+      action TEXT DEFAULT 'share'        -- 'share' | 'download'
+    );
 
-function sanitizeBits(bits){ return (typeof bits==='string' && bits.length===20 && /^[01]{20}$/.test(bits)) ? bits : null; }
-function clampPercent(p){ const n = Number(p); return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null; }
+    CREATE TABLE IF NOT EXISTS respuestas_detalle (
+      id SERIAL PRIMARY KEY,
+      respuesta_id INTEGER NOT NULL REFERENCES respuestas(id) ON DELETE CASCADE,
+      opcion INTEGER NOT NULL           -- 1..20
+    );
 
-// Basic auth middleware for stats
-function basicAuth(req, res, next){
-  const u = process.env.STATS_USER || 'admin';
-  const p = process.env.STATS_PASS || 'changeme';
-  const hdr = req.headers.authorization || '';
-  if (hdr.startsWith('Basic ')){
-    const creds = Buffer.from(hdr.slice(6), 'base64').toString('utf8');
-    const [user, pass] = creds.split(':');
+    CREATE INDEX IF NOT EXISTS idx_respuestas_action  ON respuestas(action);
+    CREATE INDEX IF NOT EXISTS idx_detalle_respuesta  ON respuestas_detalle(respuesta_id);
+    CREATE INDEX IF NOT EXISTS idx_detalle_opcion     ON respuestas_detalle(opcion);
+  `;
+  const client = await pool.connect();
+  try {
+    await client.query(sql);
+    console.log("✅ Esquema verificado");
+  } finally {
+    client.release();
+  }
+}
+await ensureSchema();
+
+// ====== util ======
+function validBits(bits) {
+  return typeof bits === "string" && /^[01]{20}$/.test(bits);
+}
+function clampPercent(p) {
+  const n = Number(p);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+// ====== Basic auth para stats ======
+function basicAuth(req, res, next) {
+  const u = process.env.STATS_USER || "admin";
+  const p = process.env.STATS_PASS || "changeme";
+  const hdr = req.headers.authorization || "";
+  if (hdr.startsWith("Basic ")) {
+    const [user, pass] = Buffer.from(hdr.slice(6), "base64")
+      .toString("utf8")
+      .split(":");
     if (user === u && pass === p) return next();
   }
   res.setHeader('WWW-Authenticate', 'Basic realm="Stats"');
-  res.status(401).send('Auth required');
+  res.status(401).send("Auth required");
 }
 
-// API
-app.post('/api/share', async (req, res) => {
+// ====== guardar respuesta ======
+async function saveRespuesta({ bits, percent, user_agent, action }) {
+  const client = await pool.connect();
   try {
-    const bits = sanitizeBits(req.body?.bits);
+    await client.query("BEGIN");
+    const ins = await client.query(
+      "INSERT INTO respuestas(percent,bits,user_agent,action) VALUES ($1,$2,$3,$4) RETURNING id",
+      [percent, bits, user_agent || "", action || "share"]
+    );
+    const id = ins.rows[0].id;
+
+    if (validBits(bits)) {
+      const values = [];
+      const params = [];
+      let k = 1;
+      for (let i = 0; i < 20; i++) {
+        if (bits[i] === "1") {
+          values.push(`($${k++}, $${k++})`);
+          params.push(id, i + 1);
+        }
+      }
+      if (values.length) {
+        await client.query(
+          `INSERT INTO respuestas_detalle(respuesta_id,opcion) VALUES ${values.join(",")}`,
+          params
+        );
+      }
+    }
+    await client.query("COMMIT");
+    return id;
+  } catch (e) {
+    await client.query("ROLLBACK");
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+// ====== API: registrar compartir/descargar ======
+app.post("/api/share", async (req, res) => {
+  try {
+    const bits = (req.body?.bits || "").toString();
     const percent = clampPercent(req.body?.percent);
-    const ua = String(req.body?.user_agent || '').slice(0, 200);
-    if (!bits) return res.status(400).json({ error: 'bits inválido' });
-    await db.run('INSERT INTO events(type, bits, percent, user_agent) VALUES (?,?,?,?)', ['share', bits, percent, ua]);
-    res.json({ ok: true });
-  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
-});
+    const action = (req.body?.action || "share").toString(); // 'share' | 'download'
+    const ua = (req.body?.user_agent || "").toString().slice(0, 200);
 
-app.post('/api/share-image', async (req, res) => {
-  try {
-    const b64 = req.body?.image_base64;
-    if (!b64) return res.status(400).json({ error: 'missing_image' });
-    const buf = Buffer.from(b64, 'base64');
-    const id = randomUUID();
-    const filename = path.join(IMG_DIR, `${id}.png`);
-    fs.writeFileSync(filename, buf);
-    const base = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || '';
-    const url = base ? `${base}/share/${id}.png` : `/share/${id}.png`;
-    res.json({ url });
-  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
-});
-
-// Stats (protected)
-app.get('/api/stats/items', basicAuth, async (req, res) => {
-  try {
-    const rows = await db.all("SELECT bits FROM events WHERE type='share'");
-    const counts = Array(20).fill(0);
-    for (const r of rows) {
-      const b = r.bits;
-      for (let i=0;i<20;i++) if (b[i]==='1') counts[i]++;
+    // bits puede venir vacío desde algunos clientes, pero si llega debe ser válido
+    if (bits && !validBits(bits)) {
+      return res.status(400).json({ ok: false, error: "BITS_INVALID" });
     }
-    res.json({ total_shares: rows.length, counts });
-  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
-});
 
-app.get('/api/stats/percent', basicAuth, async (req, res) => {
-  try {
-    const rows = await db.all("SELECT percent FROM events WHERE type='share' AND percent IS NOT NULL");
-    const total = rows.length;
-    const hist = {}; let sum=0, min=100, max=0;
-    for (const r of rows){
-      const p = Number(r.percent);
-      if (!Number.isFinite(p)) continue;
-      sum += p; if (p<min) min=p; if (p>max) max=p;
-      const bucket = Math.round(p/5)*5;
-      hist[bucket] = (hist[bucket]||0)+1;
-    }
-    const avg = total ? +(sum/total).toFixed(2) : null;
-    const histogram = Array.from({length:21}, (_,k)=>({ bucket:k*5, count:hist[k*5]||0 }));
-    res.json({ total_shares: total, avg, min: total?min:null, max: total?max:null, histogram });
-  } catch (e) { console.error(e); res.status(500).json({ error: 'server_error' }); }
-});
-
-// Static files
-app.use('/share', express.static(IMG_DIR, { maxAge: '365d', immutable: true }));
-
-// Protect /stats.html via basic auth
-app.get('/stats.html', basicAuth, (req,res,next)=> next());
-app.use(express.static(path.join(__dirname_, 'public')));
-// === Ruta de estadísticas ===
-app.get("/stats", async (req, res) => {
-  try {
-    const sqlite3 = require("sqlite3");
-    const { open } = require("sqlite");
-
-    const db = await open({
-      filename: "./data/encuesta.db",  // ajusta si tu DB tiene otro nombre
-      driver: sqlite3.Database
-    });
-
-    // Total de encuestas realizadas
-    const totalUsuarios = await db.get("SELECT COUNT(*) as total FROM respuestas");
-
-    // Opciones más votadas
-    const masVotadas = await db.all(`
-      SELECT opcion, COUNT(*) as votos 
-      FROM respuestas_detalle 
-      GROUP BY opcion 
-      ORDER BY votos DESC
-    `);
-
-    res.json({
-      totalUsuarios: totalUsuarios.total,
-      masVotadas
-    });
-
-  } catch (err) {
-    console.error("Error en /stats", err);
-    res.status(500).json({ error: "Error al obtener estadísticas" });
+    const id = await saveRespuesta({ bits, percent, user_agent: ua, action });
+    res.json({ ok: true, id });
+  } catch (e) {
+    console.error("Error /api/share", e);
+    res.status(500).json({ ok: false, error: "DB_WRITE_FAILED" });
   }
 });
-app.listen(PORT, () => console.log(`App on :${PORT}`));
+
+// ====== API: subir imagen generada (para compartir) ======
+const TMP_DIR = path.join(__dirname, "tmp_share");
+if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
+app.use("/share", express.static(TMP_DIR, { maxAge: "365d", immutable: true }));
+
+app.post("/api/share-image", async (req, res) => {
+  try {
+    const b64 = req.body?.image_base64;
+    if (!b64) return res.status(400).json({ error: "MISSING_IMAGE" });
+    const buf = Buffer.from(b64, "base64");
+    const id = randomUUID();
+    const filename = path.join(TMP_DIR, `${id}.png`);
+    fs.writeFileSync(filename, buf);
+    const base = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || "";
+    const url = base ? `${base}/share/${id}.png` : `/share/${id}.png`;
+    res.json({ url });
+  } catch (e) {
+    console.error("Error /api/share-image", e);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+// ====== API: estadísticas (protegidas) ======
+app.get("/api/stats/percent", basicAuth, async (_req, res) => {
+  try {
+    const client = await pool.connect();
+
+    const agg = await client.query(
+      `SELECT
+         COUNT(*)::int   AS total,
+         COALESCE(MIN(percent),0)::int AS min,
+         COALESCE(MAX(percent),0)::int AS max,
+         COALESCE(AVG(percent),0)::float AS avg
+       FROM respuestas`
+    );
+
+    // buckets 0..100 en pasos de 5 (percent es INTEGER, /5 es división entera)
+    const buckets = [];
+    for (let b = 0; b <= 100; b += 5) {
+      const r = await client.query(
+        "SELECT COUNT(*)::int AS c FROM respuestas WHERE (percent/5)*5 = $1",
+        [b]
+      );
+      buckets.push({ bucket: b, count: r.rows[0].c });
+    }
+
+    const actions = await client.query(
+      `SELECT
+         SUM(CASE WHEN action='share' THEN 1 ELSE 0 END)::int AS share,
+         SUM(CASE WHEN action='download' THEN 1 ELSE 0 END)::int AS download
+       FROM respuestas`
+    );
+
+    client.release();
+    res.json({ ...(agg.rows[0] || {}), buckets, actions: actions.rows[0] });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "STATS_FAILED" });
+  }
+});
+
+app.get("/api/stats/items", basicAuth, async (_req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT opcion, COUNT(*)::int AS votos
+       FROM respuestas_detalle
+       GROUP BY opcion
+       ORDER BY opcion ASC`
+    );
+    res.json(r.rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "STATS_FAILED" });
+  }
+});
+
+// proteger /stats.html
+app.get("/stats.html", basicAuth, (req, res, next) => next());
+
+// health
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+app.listen(PORT, () => {
+  console.log("🚀 Server escuchando en", PORT);
+});
