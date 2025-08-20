@@ -118,7 +118,7 @@ async function logEvent(perc, action){
 }
 
 // === Compartir / Descargar ===
-const shareText = (p,u,img)=> img?`Coincidencia: ${p}%\nHaz tu encuesta aquí: ${u}\nImagen: ${img}`:`Coincidencia: ${p}%\nHaz tu encuesta aquí: ${u}`;
+const shareText = (p,u,img)=> img?`Coincidencia facha: ${p}%\nHaz tu encuesta aquí: ${u}\nImagen: ${img}`:`Coincidencia facha: ${p}%\nHaz tu encuesta aquí: ${u}`;
 
 async function toBase64(c){ const b=await new Promise(r=>c.toBlob(r,'image/png',0.95)); return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result.split(',')[1]); fr.readAsDataURL(b); }); }
 async function upload(c){
