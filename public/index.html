@@ -3,22 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="theme-color" content="#63AF2B" />
   <meta name="description" content="Encuesta rápida: marca afirmaciones, ve tu porcentaje y comparte una imagen con tu resultado.">
   <title>Encuesta rápida</title>
   <style>
-    :root { --accent:#0ea5e9; --bg:#f6f7f9; --card:#eef2f7; --card-border:#d6dee9; --ink:#111827; --muted:#6b7280; }
+    :root { --accent:#63AF2B; --bg:#f6f7f9; --card:#e7efd8; --card-border:#c8d6ae; --ink:#1b1b1b; --muted:#6b7280; }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial; background:var(--bg); color:var(--ink); position:relative}
+    /* Bandera marca de agua */
     body::after{ content:""; position:fixed; right:10px; bottom:10px; width:84px; height:56px; opacity:.15; z-index:0;
       background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="3" height="2" viewBox="0 0 3 2"><rect width="3" height="2" fill="%23aa151b"/><rect y="0.5" width="3" height="1" fill="%23f1bf00"/></svg>');
       background-size:cover; background-repeat:no-repeat; pointer-events:none; }
     .container{max-width:1100px;margin:0 auto;padding:16px; position:relative; z-index:1}
+
     header.site{ text-align:center; padding:14px 12px 10px; background:#fff; border-radius:0 0 16px 16px; box-shadow:0 8px 24px rgba(0,0,0,.05) }
     header h1{ margin:6px 0 4px; font-size:clamp(1.35rem,2.8vw,2rem) }
     .lead{ text-align:center; color:var(--muted); margin:0 0 8px }
 
+    /* Barra superior fija */
     .topbar{ position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:12px; padding:8px 12px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.06); margin:12px 0 }
     .donut{ width:88px; height:88px }
     .percent{ font-weight:800; font-size:clamp(1.3rem,4.5vw,2rem); line-height:1 }
@@ -28,10 +31,12 @@
     .btn{ border:0; background:var(--accent); color:#fff; padding:8px 10px; border-radius:10px; font-weight:700; cursor:pointer }
     .btn.ghost{ background:#e5e7eb; color:#111827 }
 
+    /* Barra de compartir al final */
     .share-sticky{ position:sticky; bottom:0; z-index:15; margin-top:12px }
     .share-sticky .bar{ display:flex; gap:10px; justify-content:center; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:10px; box-shadow:0 10px 30px rgba(0,0,0,.06) }
     .share-sticky .btn{ padding:8px 12px }
 
+    /* Grid */
     .grid{ display:grid; gap:12px; grid-template-columns:repeat(1,minmax(0,1fr)) }
     @media (min-width:640px){ .grid{ grid-template-columns:repeat(2,minmax(0,1fr)) } }
     @media (min-width:1024px){ .grid{ grid-template-columns:repeat(4,minmax(0,1fr)) } }
@@ -53,6 +58,7 @@
       <p class="lead">Marca con qué afirmaciones sueles coincidir. Cada una vale <strong>5%</strong>. Comparte tu resultado cuando quieras.</p>
     </header>
 
+    <!-- Barra superior fija -->
     <div class="topbar" role="status" aria-live="polite">
       <svg class="donut" viewBox="0 0 120 120" aria-hidden="true">
         <circle cx="60" cy="60" r="52" fill="none" stroke="#eef3e7" stroke-width="12"></circle>
@@ -63,7 +69,12 @@
         <div class="sub"><span class="badge" id="facha">Facha: 0%</span></div>
       </div>
       <div class="actions">
-        <button class="btn" id="share-native" title="Compartir">Compartir</button>
+        <!-- Redes -->
+        <button class="btn" id="share-x">X</button>
+        <button class="btn" id="share-wh">WhatsApp</button>
+        <button class="btn" id="share-tg">Telegram</button>
+        <button class="btn" id="share-fb">Facebook</button>
+        <!-- Utilidades -->
         <button class="btn ghost" id="copy-link" title="Copiar enlace">Copiar</button>
         <button class="btn ghost" id="download-img" title="Descargar imagen">Descargar imagen</button>
         <button class="btn ghost" id="reset" title="Borrar selecciones">Reiniciar</button>
@@ -74,11 +85,15 @@
       <div class="grid"><!-- tarjetas generadas por JS --></div>
     </form>
 
+    <!-- Barra de compartir al final -->
     <div class="share-sticky">
       <div class="bar">
-        <button class="btn" id="share-bottom" title="Compartir">Compartir</button>
-        <button class="btn ghost" id="copy-bottom" title="Copiar enlace">Copiar</button>
-        <button class="btn ghost" id="download-bottom" title="Descargar imagen">Descargar imagen</button>
+        <button class="btn" id="share-x-btm">X</button>
+        <button class="btn" id="share-wh-btm">WhatsApp</button>
+        <button class="btn" id="share-tg-btm">Telegram</button>
+        <button class="btn" id="share-fb-btm">Facebook</button>
+        <button class="btn ghost" id="copy-bottom">Copiar</button>
+        <button class="btn ghost" id="download-bottom">Descargar imagen</button>
       </div>
     </div>
 
@@ -86,8 +101,10 @@
   </div>
 
   <script>
-    const API_BASE = ''; // mismo origen (servido por server.js)
+    // Usa el mismo dominio del backend (tu servicio Render sirve todo)
+    const API_BASE = '';
 
+    const SITE_URL = location.origin; // tu dominio de Render
     const items = [
       "Creo que la ley no debe permitir partidos que busquen la ruptura de España",
       "Creo que en España se pagan demasiados impuestos",
@@ -111,6 +128,7 @@
       "Quiero que el bipartidismo deje de politizar la Justicia"
     ];
 
+    // Render tarjetas
     const grid = document.querySelector('.grid');
     items.forEach((text, i) => {
       const id = `i${i+1}`;
@@ -125,23 +143,17 @@
       `);
     });
 
+    // Donut y % 
     const arc = document.getElementById('arc');
     const percentEl = document.getElementById('percent');
     const fachaEl = document.getElementById('facha');
     const form = document.getElementById('form');
     const resetBtn = document.getElementById('reset');
-    const btnShareTop = document.getElementById('share-native');
-    const btnShareBottom = document.getElementById('share-bottom');
-    const copyTop = document.getElementById('copy-link');
-    const copyBottom = document.getElementById('copy-bottom');
-    const dlTop = document.getElementById('download-img');
-    const dlBottom = document.getElementById('download-bottom');
-
-    const radius = 52; const CIRC = 2*Math.PI*radius;
+    const radius = 52; const CIRC = 2 * Math.PI * radius;
 
     function getCheckedCount(){ return form.querySelectorAll('input[type="checkbox"]:checked').length; }
     function getBits(){ return Array.from(form.querySelectorAll('input[type="checkbox"]')).map(c=>c.checked?'1':'0').join(''); }
-    function setBits(bits){ const boxes = form.querySelectorAll('input[type="checkbox"]'); [...boxes].forEach((c,i)=> c.checked = bits[i]==='1'); }
+    function setBits(bits){ const boxes=form.querySelectorAll('input[type="checkbox"]'); [...boxes].forEach((c,i)=> c.checked = bits[i]==='1'); }
     function update(){
       const checked = getCheckedCount();
       const perc = Math.min(checked*5,100);
@@ -154,61 +166,75 @@
 
     function encodeURL(){ const bits=getBits(); const url=new URL(window.location.href); url.searchParams.set('s', bits); history.replaceState(null,'',url.toString()); return url.toString(); }
 
+    // Imagen de compartir
     function drawShareCanvas(perc){
-      const W=1200,H=630;
-      const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-      const ctx=canvas.getContext('2d');
+      const W=1200,H=630, canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H; const ctx=canvas.getContext('2d');
       ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
-      ctx.globalAlpha=.15; ctx.fillStyle='#aa151b'; ctx.fillRect(W-180,H-120,160,100);
-      ctx.fillStyle='#f1bf00'; ctx.fillRect(W-180,H-120+25,160,50); ctx.globalAlpha=1;
-      ctx.fillStyle='#111827'; ctx.font='bold 64px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillText('Encuesta rápida',60,110);
-      ctx.font='bold 80px system-ui, -apple-system, Segoe UI, Roboto'; const phrase=`Soy un ${perc}% facha, ¿y tú?`; ctx.fillText(phrase,60,240);
+      ctx.globalAlpha=.15; ctx.fillStyle='#aa151b'; ctx.fillRect(W-180,H-120,160,100); ctx.fillStyle='#f1bf00'; ctx.fillRect(W-180,H-120+25,160,50); ctx.globalAlpha=1;
+      ctx.fillStyle='#1b1b1b'; ctx.font='bold 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('Encuesta rápida',60,110);
+      ctx.font='bold 80px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(`Soy un ${perc}% facha, ¿y tú?`,60,240);
       const cx=220, cy=420, r=120, start=-Math.PI/2, end=start+(2*Math.PI)*(perc/100);
       ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=30; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
-      ctx.strokeStyle='#0ea5e9'; ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
-      ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui, -apple-system, Segoe UI, Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(`${perc}%`,cx,cy);
-      ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillStyle='#6b7280'; ctx.fillText('Haz tu test y comparte tu resultado:', 60, 300);
+      ctx.strokeStyle='#63AF2B'; ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
+      ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(`${perc}%`,cx,cy);
+      ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#6b7280';
+      ctx.fillText('Realiza tu encuesta aquí:', 60, 300);
+      ctx.fillStyle='#111827'; ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL, 60, 340);
       return canvas;
     }
-
-    async function uploadImage(canvas){
+    async function canvasToBase64(canvas){
       const blob = await new Promise(res=> canvas.toBlob(res,'image/png',0.95));
-      const b64 = await new Promise((resolve)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result.split(',')[1]); r.readAsDataURL(blob); });
-      const resp = await fetch(`${API_BASE}/api/share-image`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ image_base64: b64 }) });
+      return await new Promise(resolve=>{ const r=new FileReader(); r.onload=()=>resolve(r.result.split(',')[1]); r.readAsDataURL(blob); });
+    }
+    async function uploadImage(canvas){
+      const image_base64 = await canvasToBase64(canvas);
+      const resp = await fetch(`${API_BASE}/api/share-image`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ image_base64 }) });
       if(!resp.ok) throw new Error('upload_fail');
       return resp.json(); // { url }
     }
-
     async function logShare(perc){
-      const bits=getBits();
-      const body={ bits, percent: perc, user_agent: navigator.userAgent };
-      try{ await fetch(`${API_BASE}/api/share`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), keepalive: true }); }catch(e){}
+      const bits = getBits();
+      try{ await fetch(`${API_BASE}/api/share`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ bits, percent: perc, user_agent: navigator.userAgent }), keepalive:true }); }catch(e){}
     }
 
-    function getSharePayload(perc){ const url=encodeURL(); const text=`Soy un ${perc}% facha, ¿y tú?`; return { text, url }; }
+    // Texto común para redes
+    function buildShareText(perc, pageUrl, imgUrl){
+      const t1 = `Soy un ${perc}% facha, ¿y tú?`;
+      const t2 = `Realiza tu encuesta aquí: ${pageUrl}`;
+      return imgUrl ? `${t1}\n${t2}\nImagen: ${imgUrl}` : `${t1}\n${t2}`;
+    }
 
-    async function doShare(){
+    async function shareTo(network){
       const perc = Math.min(getCheckedCount()*5,100);
       await logShare(perc);
+      const pageUrl = encodeURL(); // guarda estado ?s=
       const canvas = drawShareCanvas(perc);
+
+      // intentar web share con archivo si pulsa X (desde móvil), si no seguimos con intents
+      let imgUrl = '';
       try{
         const blob = await new Promise(res=> canvas.toBlob(res,'image/png',0.95));
         const file = new File([blob], `resultado_${perc}.png`, { type:'image/png' });
-        if (navigator.canShare && navigator.canShare({ files:[file] })){
-          await navigator.share({ title:'Encuesta rápida', text:`Soy un ${perc}% facha, ¿y tú?`, files:[file] });
+        if (navigator.canShare && navigator.canShare({ files:[file] }) && (network==='x')) {
+          await navigator.share({ title:'Encuesta', text:`Soy un ${perc}% facha, ¿y tú?`, files:[file] });
           return;
         }
       }catch(e){}
-      try{
-        const { url: imgUrl } = await uploadImage(canvas);
-        const { text, url } = getSharePayload(perc);
-        const shareText = `${text} ${url} \nImagen: ${imgUrl}`;
-        await navigator.clipboard.writeText(shareText);
-        alert('Enlace e imagen copiados para compartir');
-      }catch(e){
-        const a=document.createElement('a'); a.download=`resultado_${perc}.png`; a.href=canvas.toDataURL('image/png'); a.click();
-        alert('Imagen descargada. Compártela junto con el enlace.');
-      }
+
+      try{ imgUrl = (await uploadImage(canvas)).url; }catch(e){ /* si falla, seguimos sin imagen */ }
+
+      const text = buildShareText(perc, pageUrl, imgUrl);
+      const encText = encodeURIComponent(text);
+      const encUrl  = encodeURIComponent(pageUrl);
+
+      // abrir intent por red
+      let href = pageUrl;
+      if(network==='x') href = `https://twitter.com/intent/tweet?text=${encText}`;
+      if(network==='wh') href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${text}`)}`;
+      if(network==='tg') href = `https://t.me/share/url?url=${encUrl}&text=${encText}`;
+      if(network==='fb') href = `https://www.facebook.com/sharer/sharer.php?u=${encUrl}`;
+
+      window.open(href, '_blank');
     }
 
     function downloadImage(){
@@ -217,17 +243,29 @@
       const a=document.createElement('a'); a.download=`resultado_${perc}.png`; a.href=canvas.toDataURL('image/png'); a.click();
     }
 
+    // Listeners
     form.addEventListener('change', update);
     resetBtn.addEventListener('click', ()=>{ form.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false); update(); history.replaceState({},'',window.location.pathname); });
-    btnShareTop.addEventListener('click', doShare);
-    btnShareBottom.addEventListener('click', doShare);
-    copyTop.addEventListener('click', async()=>{ const url=encodeURL(); try{ await navigator.clipboard.writeText(url); alert('Enlace copiado'); } catch{ alert(url); } });
-    copyBottom.addEventListener('click', async()=>{ const url=encodeURL(); try{ await navigator.clipboard.writeText(url); alert('Enlace copiado'); } catch{ alert(url); } });
-    dlTop.addEventListener('click', downloadImage);
-    dlBottom.addEventListener('click', downloadImage);
 
+    document.getElementById('share-x').addEventListener('click', ()=>shareTo('x'));
+    document.getElementById('share-wh').addEventListener('click', ()=>shareTo('wh'));
+    document.getElementById('share-tg').addEventListener('click', ()=>shareTo('tg'));
+    document.getElementById('share-fb').addEventListener('click', ()=>shareTo('fb'));
+
+    document.getElementById('share-x-btm').addEventListener('click', ()=>shareTo('x'));
+    document.getElementById('share-wh-btm').addEventListener('click', ()=>shareTo('wh'));
+    document.getElementById('share-tg-btm').addEventListener('click', ()=>shareTo('tg'));
+    document.getElementById('share-fb-btm').addEventListener('click', ()=>shareTo('fb'));
+
+    document.getElementById('copy-link').addEventListener('click', async()=>{ const url=encodeURL(); try{ await navigator.clipboard.writeText(url); alert('Enlace copiado'); }catch{ alert(url); } });
+    document.getElementById('copy-bottom').addEventListener('click', async()=>{ const url=encodeURL(); try{ await navigator.clipboard.writeText(url); alert('Enlace copiado'); }catch{ alert(url); } });
+
+    document.getElementById('download-img').addEventListener('click', downloadImage);
+    document.getElementById('download-bottom').addEventListener('click', downloadImage);
+
+    // Estado inicial
     const initBits = new URL(location.href).searchParams.get('s'); if (initBits && initBits.length===20) setBits(initBits);
     update();
   </script>
 </body>
-</html>
+  </html>
