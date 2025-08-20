@@ -6,8 +6,8 @@ const SITE_URL = location.origin;
 const items = [
   "Creo que la ley no debe permitir partidos que busquen la ruptura de España",
   "Creo que en España se pagan demasiados impuestos",
-  "Apoyo a los inmigrantes que vienen a integrarse",
-  "Pienso que los ilegales deben ser devueltos a sus países",
+  "Creo que hay que quitar pagas vitalicias y aforamientos a politicos",
+  "Pienso que los ilegales que cometan delitos, deben ser devueltos a sus países",
   "No quiero en España culturas que denigran a la mujer",
   "Apoyo la prisión permanente para los violadores de mujeres",
   "Opino que hombres y mujeres no somos enemigos",
