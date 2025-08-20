@@ -10,10 +10,6 @@
     *{box-sizing:border-box}
     html,body{height:100%}
     body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial; background:var(--bg); color:var(--ink); position:relative }
-    body::after{content:"";position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));
-      width:92px;height:60px;opacity:.18;z-index:0;
-      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="3" height="2" viewBox="0 0 3 2"><rect width="3" height="2" fill="%23aa151b"/><rect y="0.5" width="3" height="1" fill="%23f1bf00"/></svg>');
-      background-size:cover;background-repeat:no-repeat;pointer-events:none;}
     .container{max-width:1100px;margin:0 auto;padding:12px 14px 96px;position:relative;z-index:1}
 
     header.site{ text-align:center; padding:12px; background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06) }
@@ -22,10 +18,10 @@
 
     .topbar{
       position:sticky; top:env(safe-area-inset-top); z-index:20; margin:10px 0;
-      display:flex; align-items:center; gap:10px; padding:8px 10px;
+      display:flex; align-items:center; gap:12px; padding:8px 10px;
       background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.06);
     }
-    .donut{ width:64px; height:64px }
+    .donut{ width:64px; height:64px; flex:0 0 64px; display:block; overflow:visible }
     .percent{ font-weight:800; font-size:clamp(1.05rem,4.5vw,1.6rem); line-height:1 }
     .sub{ color:var(--muted); font-size:.9rem }
 
@@ -44,25 +40,23 @@
     .ig { background:#E4405F }
     .download-btn{
       background:var(--accent); color:#fff; font-weight:700; border:0; border-radius:10px;
-      padding:8px 12px; font-size:.9rem; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.1);
-      width:100%; max-width:260px; text-align:center;
+      padding:10px 14px; font-size:.95rem; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.1);
+      width:100%; max-width:280px; text-align:center;
     }
-    .reset{ border:0; background:#f3f4f6; color:#111827; padding:6px 10px; border-radius:10px; font-weight:600 }
+    .reset{ border:0; background:#f3f4f6; color:#111827; padding:8px 12px; border-radius:10px; font-weight:700 }
 
-    /* Grid tarjetas */
     .grid{ display:grid; gap:12px; grid-template-columns:repeat(1,minmax(0,1fr)) }
     @media (min-width:640px){ .grid{ grid-template-columns:repeat(2,minmax(0,1fr)) } }
     @media (min-width:1024px){ .grid{ grid-template-columns:repeat(4,minmax(0,1fr)) } }
     .card{ display:flex; align-items:flex-start; gap:12px; background:var(--card); border:1px dashed var(--card-border); border-radius:14px; padding:12px 14px }
     .card:hover{ border-style:solid }
-    .card input[type=checkbox]{ transform:scale(1.2); accent-color:var(--accent); margin-top:2px }
+    .card input[type=checkbox]{ transform:scale(1.25); accent-color:var(--accent); margin-top:2px }
     .card label.card-body{ display:flex; gap:8px; align-items:flex-start; cursor:pointer; width:100% }
     .card label.card-body img{ width:40px; height:40px; object-fit:contain; flex:0 0 auto }
     .card label.card-body span{ font-size:1rem; line-height:1.35; display:block }
 
     .footer-note{ color:var(--muted); font-size:.92rem; text-align:center; padding:10px 0 0 }
 
-    /* Barra inferior: solo botón descargar */
     .bottombar-wrap{
       position:fixed; left:0; right:0; bottom:0; z-index:25;
       padding:8px calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
@@ -91,31 +85,18 @@
       </svg>
       <div>
         <div class="percent" id="percent">0%</div>
-        <div class="sub" id="subtitle">Porcentaje de coincidencia Facha</div>
+        <div class="sub" id="subtitle">Porcentaje de coincidencia FACHA</div>
       </div>
 
-      <!-- Botones de compartir arriba (opcional, puedes quitarlos si quieres) -->
       <div class="share-box">
         <div class="actions">
-          <button class="iconbtn x"  id="share-x"  title="Compartir en X" aria-label="Compartir en X">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M21 3L3 21"/></svg>
-          </button>
-          <button class="iconbtn wh" id="share-wh" title="Compartir en WhatsApp" aria-label="Compartir en WhatsApp">
-            <svg viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 006.6 20.8L3 21l1-3.5A11 11 0 1020.5 3.5zm-1.9 14.7c-.3.9-1.6 1.5-2.6 1.7-.7.1-1.7.2-4-.9-3.4-1.5-5.5-4.9-5.6-5.1-.2-.3-1.3-1.7-1.3-3.3 0-1.6.8-2.4 1.1-2.8.3-.3.7-.4 1-.4h.7c.2 0 .5 0 .7.6.3.8 1 2.7 1.1 2.9.1.2.1.5 0 .7-.2.4-.5.7-.8 1-.2.1-.4.3-.2.7.2.4.9 1.5 1.9 2.4 1.3 1.2 2.4 1.6 2.8 1.8.3.1.6.1.8-.1.3-.4.9-1.1 1.1-1.5.3-.3.6-.3.9-.2.4.1 2.2 1 2.6 1.2.4.2.7.2.8.4.1.1.1.8-.2 1.5z"/></svg>
-          </button>
-          <button class="iconbtn tg" id="share-tg" title="Compartir en Telegram" aria-label="Compartir en Telegram">
-            <svg viewBox="0 0 24 24" fill="#fff"><path d="M9.8 15.6l-.3 4.3c.4 0 .6-.2.8-.4l1.9-1.8 4.1 3c.7.4 1.2.2 1.4-.6l2.5-11.7c.2-.8-.3-1.1-1-.9L3.6 11.1c-.8.2-.8.7-.1.9l4.6 1.4 10.7-6.7-9 8.9z"/></svg>
-          </button>
-          <button class="iconbtn fb" id="share-fb" title="Compartir en Facebook" aria-label="Compartir en Facebook">
-            <svg viewBox="0 0 24 24" fill="#fff"><path d="M13 22v-8h3l1-4h-4V7c0-1.1.3-2 2-2h2V1.1C16.7 1 15.4 1 14 1c-3 0-5 1.8-5 5v3H6v4h3v8h4z"/></svg>
-          </button>
-          <button class="iconbtn ig" id="share-ig" title="Compartir en Instagram" aria-label="Compartir en Instagram">
-            <svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18.5 6a1 1 0 110 2 1 1 0 010-2z"/></svg>
-          </button>
+          <button class="iconbtn x"  id="share-x"  title="Compartir en X" aria-label="Compartir en X"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M21 3L3 21"/></svg></button>
+          <button class="iconbtn wh" id="share-wh" title="Compartir en WhatsApp" aria-label="Compartir en WhatsApp"><svg viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 006.6 20.8L3 21l1-3.5A11 11 0 1020.5 3.5zm-1.9 14.7c-.3.9-1.6 1.5-2.6 1.7-.7.1-1.7.2-4-.9-3.4-1.5-5.5-4.9-5.6-5.1-.2-.3-1.3-1.7-1.3-3.3 0-1.6.8-2.4 1.1-2.8.3-.3.7-.4 1-.4h.7c.2 0 .5 0 .7.6.3.8 1 2.7 1.1 2.9.1.2.1.5 0 .7-.2.4-.5.7-.8 1-.2.1-.4.3-.2.7.2.4.9 1.5 1.9 2.4 1.3 1.2 2.4 1.6 2.8 1.8.3.1.6.1.8-.1.3-.4.9-1.1 1.1-1.5.3-.3.6-.3.9-.2.4.1 2.2 1 2.6 1.2.4.2.7.2.8.4.1.1.1.8-.2 1.5z"/></svg></button>
+          <button class="iconbtn tg" id="share-tg" title="Compartir en Telegram" aria-label="Compartir en Telegram"><svg viewBox="0 0 24 24" fill="#fff"><path d="M9.8 15.6l-.3 4.3c.4 0 .6-.2.8-.4l1.9-1.8 4.1 3c.7.4 1.2.2 1.4-.6l2.5-11.7c.2-.8-.3-1.1-1-.9L3.6 11.1c-.8.2-.8.7-.1.9l4.6 1.4 10.7-6.7-9 8.9z"/></svg></button>
+          <button class="iconbtn fb" id="share-fb" title="Compartir en Facebook" aria-label="Compartir en Facebook"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13 22v-8h3l1-4h-4V7c0-1.1.3-2 2-2h2V1.1C16.7 1 15.4 1 14 1c-3 0-5 1.8-5 5v3H6v4h3v8h4z"/></svg></button>
+          <button class="iconbtn ig" id="share-ig" title="Compartir en Instagram" aria-label="Compartir en Instagram"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18.5 6a1 1 0 110 2 1 1 0 010-2z"/></svg></button>
         </div>
- <div class="bottombar">
-      <button class="download-btn" id="download-bottom">📥 Descargar mi imagen Facha</button>
-    </div>
+        <button class="download-btn" id="download-img">📥 Descargar mi imagen Facha</button>
         <button class="reset" id="reset">Reiniciar</button>
       </div>
     </div>
@@ -126,14 +107,146 @@
     <div class="footer-note">Cada afirmación marcada suma 5%. Total de 20 afirmaciones = 100%.</div>
   </div>
 
-  <!-- Barra inferior SOLO con Descargar -->
+  <!-- Barra inferior: solo descargar -->
   <div class="bottombar-wrap">
     <div class="bottombar">
       <button class="download-btn" id="download-bottom">📥 Descargar mi imagen Facha</button>
     </div>
   </div>
 
-  <script src="/app.js?v=9"></script>
+  <!-- JS embebido -->
+  <script>
+  (function(){
+    const SITE_URL = location.origin;
+
+    const items = [
+      "Creo que la ley no debe permitir partidos que busquen la ruptura de España",
+      "Creo que en España se pagan demasiados impuestos",
+      "Creo que hay que quitar pagas vitalicias y aforamientos a políticos",
+      "Pienso que los ilegales que cometan delitos deben ser devueltos a sus países",
+      "No quiero en España culturas que denigran a la mujer",
+      "Apoyo la prisión permanente para los violadores de mujeres",
+      "Opino que hombres y mujeres no somos enemigos",
+      "Creo que hay que reforzar la vigilancia en nuestras fronteras",
+      "Pienso que los okupas deben ser expulsados de inmediato",
+      "Apoyo nuestro producto e industria frente a la competencia desleal",
+      "Hay que endurecer las penas para los criminales",
+      "Apoyo que los padres elijan la educación de sus hijos",
+      "Pienso que hay que conservar las tradiciones que nos unen",
+      "Apoyo un Sistema Sanitario y Educativo público común en España",
+      "Me gusta la bandera de España y no me avergüenzo de ella",
+      "Las instituciones públicas deben reducir el gasto político",
+      "Pienso que hay que garantizar la libertad de hablar en español",
+      "Respeto la identidad y orientación de cada persona, pero creo que en el deporte femenino no deben competir hombres biológicos aunque se identifiquen como mujeres.",
+      "Creo que la Policía y la Guardia Civil deberían tener más medios",
+      "Quiero que el bipartidismo deje de politizar la Justicia"
+    ];
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = items.map((t,i)=>{
+      const id = 'i'+(i+1);
+      return \`
+        <div class="card">
+          <input type="checkbox" id="\${id}">
+          <label class="card-body" for="\${id}">
+            <img src="img/\${i+1}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span>\${t}</span>
+          </label>
+        </div>\`;
+    }).join('');
+
+    // donut / porcentaje
+    const R=52, CIRC=2*Math.PI*R;
+    const arc = document.getElementById('arc');
+    const percentEl = document.getElementById('percent');
+    function getChecked(){ return grid.querySelectorAll('input[type="checkbox"]:checked').length; }
+    function update(){
+      const p = Math.min(getChecked()*5,100);
+      arc.setAttribute('stroke-dasharray', \`\${(p/100)*CIRC} \${CIRC}\`);
+      percentEl.textContent = \`\${p}%\`;
+      document.title = \`Coincidencia \${p}%\`;
+    }
+    document.getElementById('form').addEventListener('change', update);
+
+    // Reiniciar
+    document.getElementById('reset').addEventListener('click', ()=>{
+      grid.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=false);
+      history.replaceState({},'',location.pathname);
+      update();
+    });
+
+    // Restaurar desde ?s=
+    const s = new URL(location.href).searchParams.get('s');
+    if(s && s.length===20){
+      const boxes = grid.querySelectorAll('input[type="checkbox"]');
+      boxes.forEach((c,i)=> c.checked = s[i]==='1');
+    }
+    update();
+
+    // Descargar imagen (arriba e inferior)
+    document.getElementById('download-img').addEventListener('click', e=>{ e.preventDefault(); downloadImage(); });
+    document.getElementById('download-bottom').addEventListener('click', e=>{ e.preventDefault(); downloadImage(); });
+
+    function drawShareCanvas(perc){
+      const W=1200,H=630, c=document.createElement('canvas'); c.width=W; c.height=H; const ctx=c.getContext('2d');
+      const stripe=H/3;
+      ctx.fillStyle='#aa151b'; ctx.fillRect(0,0,W,stripe);
+      ctx.fillStyle='#f1bf00'; ctx.fillRect(0,stripe,W,stripe);
+      ctx.fillStyle='#aa151b'; ctx.fillRect(0,2*stripe,W,stripe);
+
+      ctx.fillStyle='#ffffff'; ctx.font='bold 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('Encuesta rápida',60,110);
+      ctx.fillStyle='#111827'; ctx.font='bold 76px system-ui,-apple-system,Segoe UI,Roboto';
+      ctx.fillText(\`Coincidencia facha: \${perc}%\`,60,240);
+
+      const cx=220, cy=420, r=120, start=-Math.PI/2, end=start+(2*Math.PI)*(perc/100);
+      ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=30; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
+      ctx.strokeStyle='#63AF2B'; ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
+
+      ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto';
+      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(\`\${perc}%\`,cx,cy);
+
+      ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#000';
+      ctx.fillText('Haz tu encuesta aquí:',60,300);
+      ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL,60,340);
+      return c;
+    }
+
+    function downloadImage(){
+      const p = Math.min(getChecked()*5,100);
+      const canvas = drawShareCanvas(p);
+      const a=document.createElement('a');
+      a.download=\`resultado_\${p}.png\`;
+      a.href=canvas.toDataURL('image/png');
+      a.click();
+    }
+
+    // (Opcional) compartir: X/WhatsApp/Telegram/Facebook/Instagram
+    const enc = s => encodeURIComponent(s);
+    function keepUrl(){ const u=new URL(location.href); const bits=[...grid.querySelectorAll('input[type="checkbox"]')].map(c=>c.checked?'1':'0').join(''); u.searchParams.set('s',bits); history.replaceState(null,'',u.toString()); return u.toString(); }
+    function share(net){
+      const p=Math.min(getChecked()*5,100);
+      const url=keepUrl();
+      const msg=\`Coincidencia facha: \${p}%\\nHaz tu encuesta aquí: \${url}\`;
+      let href=url;
+      if(net==='x')  href=\`https://twitter.com/intent/tweet?text=\${enc(msg)}\`;
+      if(net==='wh') href=\`https://api.whatsapp.com/send?text=\${enc(msg)}\`;
+      if(net==='tg') href=\`https://t.me/share/url?url=\${enc(url)}&text=\${enc(msg)}\`;
+      if(net==='fb') href=\`https://www.facebook.com/sharer/sharer.php?u=\${enc(url)}\`;
+      if(net==='ig'){
+        const canvas = drawShareCanvas(p);
+        const a=document.createElement('a'); a.download=\`resultado_\${p}.png\`; a.href=canvas.toDataURL('image/png'); a.click();
+        try{ navigator.clipboard.writeText(msg); }catch(_){}
+        alert('Se copió el texto y se descargó la imagen. Súbela a Instagram manualmente.');
+        return;
+      }
+      window.open(href,'_blank');
+    }
+    document.getElementById('share-x').addEventListener('click', ()=>share('x'));
+    document.getElementById('share-wh').addEventListener('click', ()=>share('wh'));
+    document.getElementById('share-tg').addEventListener('click', ()=>share('tg'));
+    document.getElementById('share-fb').addEventListener('click', ()=>share('fb'));
+    document.getElementById('share-ig').addEventListener('click', ()=>share('ig'));
+  })();
+  </script>
 </body>
 </html>
-
