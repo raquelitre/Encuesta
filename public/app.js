@@ -6,8 +6,8 @@ const SITE_URL = location.origin;
 const items = [
   "Creo que la ley no debe permitir partidos que busquen la ruptura de España",
   "Creo que en España se pagan demasiados impuestos",
-  "Creo que hay que quitar pagas vitalicias y aforamientos a politicos",
-  "Pienso que los ilegales que cometan delitos, deben ser devueltos a sus países",
+  "Creo que hay que quitar pagas vitalicias y aforamientos a políticos",
+  "Pienso que los ilegales que cometan delitos deben ser devueltos a sus países",
   "No quiero en España culturas que denigran a la mujer",
   "Apoyo la prisión permanente para los violadores de mujeres",
   "Opino que hombres y mujeres no somos enemigos",
@@ -18,7 +18,7 @@ const items = [
   "Apoyo que los padres elijan la educación de sus hijos",
   "Pienso que hay que conservar las tradiciones que nos unen",
   "Apoyo un Sistema Sanitario y Educativo público común en España",
-  "Yo no me avergüenzo de mi bandera ni de ser español",
+  "Me gusta la bandera de España y no me avergüenzo de ella",
   "Las instituciones públicas deben reducir el gasto político",
   "Pienso que hay que garantizar la libertad de hablar en español",
   "No quiero hombres biológicos en el deporte femenino",
@@ -27,33 +27,6 @@ const items = [
 ];
 
 // === Render inicial ===
-document.addEventListener("DOMContentLoaded", () => {
-  const checkboxes = document.querySelectorAll("input[type=checkbox]");
-  const percentEl = document.getElementById("percent");
-  const circleEl = document.getElementById("percentCircle");
-  
-  function updatePercent() {
-    let checked = 0;
-    checkboxes.forEach(cb => {
-      if (cb.checked) checked++;
-    });
-    let percent = checked * 5; // Cada respuesta vale 5%
-    if (percentEl) {
-      percentEl.textContent = percent + "%";
-    }
-    if (circleEl) {
-      circleEl.style.background = `conic-gradient(
-        #2ecc71 ${percent}%, 
-        #eee ${percent}%
-      )`;
-    }
-  }
-
-  checkboxes.forEach(cb => cb.addEventListener("change", updatePercent));
-
-  // inicializa al cargar
-  updatePercent();
-});
 window.addEventListener('DOMContentLoaded', () => {
   const grid = document.getElementById('grid');
   items.forEach((text, i) => {
@@ -69,49 +42,47 @@ window.addEventListener('DOMContentLoaded', () => {
     `);
   });
 
-  // Wire up
-  document.getElementById('share-x').onclick  = ()=>shareTo('x');
-  document.getElementById('share-wh').onclick = ()=>shareTo('wh');
-  document.getElementById('share-tg').onclick = ()=>shareTo('tg');
-  document.getElementById('share-fb').onclick = ()=>shareTo('fb');
-  document.getElementById('share-ig').onclick = ()=>shareTo('ig');
-  document.getElementById('share-x-btm').onclick  = ()=>shareTo('x');
-  document.getElementById('share-wh-btm').onclick = ()=>shareTo('wh');
-  document.getElementById('share-tg-btm').onclick = ()=>shareTo('tg');
-  document.getElementById('share-fb-btm').onclick = ()=>shareTo('fb');
-  document.getElementById('share-ig-btm').onclick = ()=>shareTo('ig');
+  // Enlaces de compartir (arriba)
+  byId('share-x') ?.addEventListener('click', ()=>shareTo('x'));
+  byId('share-wh')?.addEventListener('click', ()=>shareTo('wh'));
+  byId('share-tg')?.addEventListener('click', ()=>shareTo('tg'));
+  byId('share-fb')?.addEventListener('click', ()=>shareTo('fb'));
+  byId('share-ig')?.addEventListener('click', ()=>shareTo('ig'));
 
-  document.getElementById('download-img').onclick = downloadImage;
-  document.getElementById('download-bottom').onclick = downloadImage;
+  // Descargar (abajo)
+  byId('download-bottom')?.addEventListener('click', downloadImage);
 
-  document.getElementById('reset').onclick = ()=>{
+  // Reiniciar
+  byId('reset')?.addEventListener('click', ()=>{
     document.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false);
     update(); history.replaceState({},'',location.pathname);
-  };
+  });
 
-  document.getElementById('form').addEventListener('change', update);
+  // Cambios en la encuesta
+  byId('form').addEventListener('change', update);
 
   // Restaurar desde ?s=
   const s=new URL(location.href).searchParams.get('s'); if(s && s.length===20) setBits(s);
   update();
 });
 
-// === Porcentaje / donut ===
-const arc = ()=>document.getElementById('arc');
-const percentEl = ()=>document.getElementById('percent');
-const fachaEl = ()=>document.getElementById('facha');
-const radius=52, CIRC=2*Math.PI*radius;
+// === Helpers DOM ===
+const byId = id => document.getElementById(id);
 
-function getChecked(){ return document.querySelectorAll('input[type="checkbox"]:checked').length; }
-function getBits(){ return Array.from(document.querySelectorAll('input[type="checkbox"]')).map(c=>c.checked?'1':'0').join(''); }
-function setBits(bits){ document.querySelectorAll('input[type="checkbox"]').forEach((c,i)=> c.checked = bits[i]==='1'); }
+// === Porcentaje / donut ===
+const radius=52, CIRC=2*Math.PI*radius;
+function getChecked(){ return document.querySelectorAll('#grid input[type="checkbox"]:checked').length; }
+function getBits(){ return Array.from(document.querySelectorAll('#grid input[type="checkbox"]')).map(c=>c.checked?'1':'0').join(''); }
+function setBits(bits){ document.querySelectorAll('#grid input[type="checkbox"]').forEach((c,i)=> c.checked = bits[i]==='1'); }
+
 function update(){
-  const perc = Math.min(getChecked()*5,100);
-  arc().setAttribute('stroke-dasharray', `${(perc/100)*CIRC} ${CIRC}`);
-  percentEl().textContent = `${perc}%`;
-  fachaEl().textContent = `Facha: ${perc}%`;
-  document.title = `Coincidencia ${perc}%`;
+  const p = Math.min(getChecked()*5,100);
+  byId('arc').setAttribute('stroke-dasharray', `${(p/100)*CIRC} ${CIRC}`);
+  byId('percent').textContent = `${p}%`;
+  byId('subtitle').textContent = `Porcentaje de coincidencia`;
+  document.title = `Coincidencia ${p}%`;
 }
+
 function keepUrl(){ const url=new URL(location.href); url.searchParams.set('s', getBits()); history.replaceState(null,'',url.toString()); return url.toString(); }
 
 // === Canvas con bandera ===
@@ -121,19 +92,20 @@ function drawShareCanvas(perc){
   ctx.fillStyle='#aa151b'; ctx.fillRect(0,0,W,stripe);
   ctx.fillStyle='#f1bf00'; ctx.fillRect(0,stripe,W,stripe);
   ctx.fillStyle='#aa151b'; ctx.fillRect(0,2*stripe,W,stripe);
+
   ctx.fillStyle='#ffffff'; ctx.font='bold 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('Encuesta rápida',60,110);
-  ctx.fillStyle='#111827'; ctx.font='bold 80px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(`Soy un ${perc}% facha, ¿y tú?`,60,240);
+  ctx.fillStyle='#111827'; ctx.font='bold 76px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(`Coincidencia: ${perc}%`,60,240);
   const cx=220, cy=420, r=120, start=-Math.PI/2, end=start+(2*Math.PI)*(perc/100);
   ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=30; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
   ctx.strokeStyle='#63AF2B'; ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
   ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(`${perc}%`,cx,cy);
   ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#000';
-  ctx.fillText('Realiza tu encuesta aquí:',60,300);
+  ctx.fillText('Haz tu encuesta aquí:',60,300);
   ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL,60,340);
   return c;
 }
 
-// === Backend helpers ===
+// === Backend helpers (opcional: registro de estadísticas si tu server tiene /api/share) ===
 async function logEvent(perc, action){
   try{
     await fetch(`${API_BASE}/api/share`, {
@@ -144,6 +116,10 @@ async function logEvent(perc, action){
     });
   }catch(_){}
 }
+
+// === Compartir / Descargar ===
+const shareText = (p,u,img)=> img?`Coincidencia: ${p}%\nHaz tu encuesta aquí: ${u}\nImagen: ${img}`:`Coincidencia: ${p}%\nHaz tu encuesta aquí: ${u}`;
+
 async function toBase64(c){ const b=await new Promise(r=>c.toBlob(r,'image/png',0.95)); return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result.split(',')[1]); fr.readAsDataURL(b); }); }
 async function upload(c){
   try{
@@ -153,21 +129,18 @@ async function upload(c){
   }catch(_){ return ''; }
 }
 
-// === Compartir / Descargar ===
-const shareText = (p,u,img)=> img?`Soy un ${p}% facha, ¿y tú?\nRealiza tu encuesta aquí: ${u}\nImagen: ${img}`:`Soy un ${p}% facha, ¿y tú?\nRealiza tu encuesta aquí: ${u}`;
-
 async function shareTo(net){
   const perc=Math.min(getChecked()*5,100);
-  await logEvent(perc,'share');                 // <-- REGISTRA COMPARTIR
+  await logEvent(perc,'share');
   const url=keepUrl();
   const canvas=drawShareCanvas(perc);
 
-  // Web Share con archivo para X/IG si existe
+  // Web Share con archivo para X/IG si se puede
   try{
     const blob = await new Promise(r=>canvas.toBlob(r,'image/png',0.95));
     const file = new File([blob], `resultado_${perc}.png`, {type:'image/png'});
     if (navigator.canShare && navigator.canShare({files:[file]}) && (net==='x'||net==='ig')){
-      await navigator.share({title:'Encuesta', text:`Soy un ${perc}% facha, ¿y tú? Realiza tu encuesta aquí: ${url}`, files:[file]});
+      await navigator.share({title:'Encuesta', text:`Coincidencia: ${perc}% · ${url}`, files:[file]});
       return;
     }
   }catch(_){}
@@ -185,7 +158,7 @@ async function shareTo(net){
   if(net==='ig'){
     try{ await navigator.clipboard.writeText(message);}catch(_){}
     const a=document.createElement('a'); a.download=`resultado_${perc}.png`; a.href=canvas.toDataURL('image/png'); a.click();
-    alert('Instagram no permite compartir directo desde web. Se copió el texto y se descargó la imagen.');
+    alert('Se copió el texto y se descargó la imagen. Súbela a Instagram manualmente.');
     return;
   }
   window.open(href,'_blank');
@@ -193,7 +166,8 @@ async function shareTo(net){
 
 async function downloadImage(){
   const perc = Math.min(getChecked()*5,100);
-  await logEvent(perc,'download');              // <-- REGISTRA DESCARGA
+  await logEvent(perc,'download');         // si tu backend lo usa
   const canvas = drawShareCanvas(perc);
   const a=document.createElement('a'); a.download=`resultado_${perc}.png`; a.href=canvas.toDataURL('image/png'); a.click();
 }
+
