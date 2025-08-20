@@ -21,7 +21,7 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial;
       background:var(--bg); color:var(--ink); position:relative;
     }
-    /* Marca de agua bandera */
+    /* Marca de agua pequeña en pantalla */
     body::after{content:"";position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));
       width:92px;height:60px;opacity:.18;z-index:0;
       background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="3" height="2" viewBox="0 0 3 2"><rect width="3" height="2" fill="%23aa151b"/><rect y="0.5" width="3" height="1" fill="%23f1bf00"/></svg>');
@@ -45,10 +45,11 @@
     .btn.ghost{ background:#e5e7eb; color:#111827 }
     .btn.icon{ display:inline-flex; align-items:center; gap:6px; padding:9px 10px }
     .btn.icon svg{ width:18px; height:18px; display:block }
-    .btn.x{ background:#000 }
-    .btn.wh{ background:#25D366 }
-    .btn.tg{ background:#229ED9 }
-    .btn.fb{ background:#1877F2 }
+    .btn.x{  background:#000 }        /* X */
+    .btn.wh{ background:#25D366 }     /* WhatsApp */
+    .btn.tg{ background:#229ED9 }     /* Telegram */
+    .btn.fb{ background:#1877F2 }     /* Facebook */
+    .btn.ig{ background:#E4405F }     /* Instagram */
 
     /* Barra inferior fija (para móvil) */
     .share-sticky{
@@ -116,6 +117,10 @@
           <svg viewBox="0 0 24 24" fill="#fff"><path d="M13 22v-8h3l1-4h-4V7c0-1.1.3-2 2-2h2V1.1C16.7 1 15.4 1 14 1c-3 0-5 1.8-5 5v3H6v4h3v8h4z"/></svg>
           Facebook
         </button>
+        <button class="btn icon ig" id="share-ig" title="Compartir en Instagram">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18.5 6a1 1 0 110 2 1 1 0 010-2z"/></svg>
+          Instagram
+        </button>
 
         <!-- Utilidades -->
         <button class="btn ghost" id="copy-link" title="Copiar enlace">Copiar</button>
@@ -125,7 +130,7 @@
     </div>
 
     <form id="form" aria-describedby="ayuda">
-      <div class="grid"><!-- tarjetas generadas por JS --></div>
+      <div class="grid" id="grid"><!-- tarjetas generadas por JS --></div>
     </form>
 
     <!-- Barra inferior fija (siempre visible en móvil) -->
@@ -148,6 +153,10 @@
           <svg viewBox="0 0 24 24" fill="#fff"><path d="M13 22v-8h3l1-4h-4V7c0-1.1.3-2 2-2h2V1.1C16.7 1 15.4 1 14 1c-3 0-5 1.8-5 5v3H6v4h3v8h4z"/></svg>
           Facebook
         </button>
+        <button class="btn icon ig" id="share-ig-btm" title="Compartir en Instagram">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18.5 6a1 1 0 110 2 1 1 0 010-2z"/></svg>
+          Instagram
+        </button>
         <button class="btn ghost" id="copy-bottom">Copiar</button>
         <button class="btn ghost" id="download-bottom">Descargar imagen</button>
       </div>
@@ -159,11 +168,10 @@
   </div>
 
   <script>
-    /* === BACKEND (mismo dominio) === */
     const API_BASE = '';
     const SITE_URL = location.origin;
 
-    /* === Ítems === */
+    /* Ítems */
     const items = [
       "Creo que la ley no debe permitir partidos que busquen la ruptura de España",
       "Creo que en España se pagan demasiados impuestos",
@@ -187,22 +195,26 @@
       "Quiero que el bipartidismo deje de politizar la Justicia"
     ];
 
-    /* === Render de tarjetas === */
-    const grid = document.querySelector('.grid');
-    items.forEach((text, i) => {
-      const id = `i${i+1}`;
-      grid.insertAdjacentHTML('beforeend', `
-        <div class="card">
-          <input type="checkbox" id="${id}">
-          <label class="card-body" for="${id}">
-            <img src="img/${i+1}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <span>${text}</span>
-          </label>
-        </div>
-      `);
-    });
+    /* Render del grid con try/catch para que nunca se rompa */
+    (function renderGrid(){
+      try{
+        const grid = document.getElementById('grid');
+        items.forEach((text, i) => {
+          const id = `i${i+1}`;
+          grid.insertAdjacentHTML('beforeend', `
+            <div class="card">
+              <input type="checkbox" id="${id}">
+              <label class="card-body" for="${id}">
+                <img src="img/${i+1}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+                <span>${text}</span>
+              </label>
+            </div>
+          `);
+        });
+      }catch(e){ console.error(e); }
+    })();
 
-    /* === Donut y porcentaje === */
+    /* Donut y % */
     const arc = document.getElementById('arc');
     const percentEl = document.getElementById('percent');
     const fachaEl = document.getElementById('facha');
@@ -223,25 +235,52 @@
       document.title = `Coincidencia ${perc}%`;
     }
 
-    /* URL con estado */
     function encodeURL(){ const bits=getBits(); const url=new URL(window.location.href); url.searchParams.set('s', bits); history.replaceState(null,'',url.toString()); return url.toString(); }
 
-    /* === Imagen para compartir === */
+    /* Imagen con fondo de BANDERA completa */
     function drawShareCanvas(perc){
-      const W=1200,H=630; const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H; const ctx=canvas.getContext('2d');
-      ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
-      ctx.globalAlpha=.15; ctx.fillStyle='#aa151b'; ctx.fillRect(W-180,H-120,160,100); ctx.fillStyle='#f1bf00'; ctx.fillRect(W-180,H-120+25,160,50); ctx.globalAlpha=1;
-      ctx.fillStyle='#1b1b1b'; ctx.font='bold 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('Encuesta rápida',60,110);
-      ctx.font='bold 80px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(`Soy un ${perc}% facha, ¿y tú?`,60,240);
+      const W=1200,H=630;
+      const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+      const ctx=canvas.getContext('2d');
+
+      // Fondo bandera (rojo-amarillo-rojo)
+      const stripe=H/3;
+      ctx.fillStyle='#aa151b'; ctx.fillRect(0,0,W,stripe);
+      ctx.fillStyle='#f1bf00'; ctx.fillRect(0,stripe,W,stripe);
+      ctx.fillStyle='#aa151b'; ctx.fillRect(0,2*stripe,W,stripe);
+
+      // Título
+      ctx.fillStyle='#ffffff';
+      ctx.font='bold 64px system-ui,-apple-system,Segoe UI,Roboto';
+      ctx.fillText('Encuesta rápida',60,110);
+
+      // Mensaje principal
+      ctx.fillStyle='#111827';
+      ctx.font='bold 80px system-ui,-apple-system,Segoe UI,Roboto';
+      ctx.fillText(`Soy un ${perc}% facha, ¿y tú?`,60,240);
+
+      // Donut
       const cx=220, cy=420, r=120, start=-Math.PI/2, end=start+(2*Math.PI)*(perc/100);
-      ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=30; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
-      ctx.strokeStyle='#63AF2B'; ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
-      ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(`${perc}%`,cx,cy);
-      ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle:'#6b7280';
+      ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=30; ctx.lineCap='round';
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
+      ctx.strokeStyle='#63AF2B';
+      ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.stroke();
+
+      // % dentro
+      ctx.fillStyle='#111827';
+      ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(`${perc}%`,cx,cy);
+
+      // URL
+      ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+      ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#000';
       ctx.fillText('Realiza tu encuesta aquí:',60,300);
-      ctx.fillStyle='#111827'; ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL,60,340);
+      ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL,60,340);
+
       return canvas;
     }
+
     async function canvasToBase64(canvas){
       const blob = await new Promise(res=> canvas.toBlob(res,'image/png',0.95));
       return await new Promise(resolve=>{ const r=new FileReader(); r.onload=()=>resolve(r.result.split(',')[1]); r.readAsDataURL(blob);});
@@ -249,11 +288,12 @@
     async function uploadImage(canvas){
       const image_base64 = await canvasToBase64(canvas);
       const resp = await fetch(`${API_BASE}/api/share-image`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ image_base64 }) });
-      if(!resp.ok) throw new Error('upload_fail'); return resp.json(); // {url}
+      if(!resp.ok) throw new Error('upload_fail');
+      return resp.json(); // { url }
     }
     async function logShare(perc){
       const bits=getBits();
-      try{ await fetch(`${API_BASE}/api/share`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ bits, percent: perc, user_agent: navigator.userAgent }), keepalive:true }); }catch(e){}
+      try{ await fetch(`${API_BASE}/api/share`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ bits, percent: perc, user_agent: navigator.userAgent }), keepalive:true }); }catch(_){}
     }
 
     function buildShareText(perc, pageUrl, imgUrl){
@@ -263,37 +303,48 @@
     }
 
     async function shareTo(network){
-      const perc = Math.min(getCheckedCount()*5,100);
-      await logShare(perc);
-      const pageUrl = encodeURL();               // estado ?s=
-      const canvas = drawShareCanvas(perc);
-
-      // Intento Web Share con archivo (solo X y móviles compatibles)
       try{
-        const blob = await new Promise(res=> canvas.toBlob(res,'image/png',0.95));
-        const file = new File([blob], `resultado_${perc}.png`, { type:'image/png' });
-        if (navigator.canShare && navigator.canShare({ files:[file] }) && network==='x'){
-          await navigator.share({ title:'Encuesta', text:`Soy un ${perc}% facha, ¿y tú? Realiza tu encuesta aquí: ${pageUrl}`, files:[file] });
+        const perc = Math.min(getCheckedCount()*5,100);
+        await logShare(perc);
+        const pageUrl = encodeURL();
+        const canvas = drawShareCanvas(perc);
+
+        // Web Share con archivo (X/Instagram pueden aparecer en el sheet si el SO lo soporta)
+        try{
+          const blob = await new Promise(res=> canvas.toBlob(res,'image/png',0.95));
+          const file = new File([blob], `resultado_${perc}.png`, { type:'image/png' });
+          if (navigator.canShare && navigator.canShare({ files:[file] }) && (network==='x' || network==='ig')){
+            await navigator.share({ title:'Encuesta', text:`Soy un ${perc}% facha, ¿y tú? Realiza tu encuesta aquí: ${pageUrl}`, files:[file] });
+            return;
+          }
+        }catch(_){}
+
+        // Subir imagen (para X/WA/TG añadimos link de imagen). Instagram web no tiene intent oficial.
+        let imgUrl = '';
+        try{ imgUrl = (await uploadImage(canvas)).url; }catch(_){}
+
+        const text = buildShareText(perc, pageUrl, imgUrl);
+        const encText = encodeURIComponent(text);
+        const encUrl  = encodeURIComponent(pageUrl);
+
+        let href = pageUrl;
+        if(network==='x')  href = `https://twitter.com/intent/tweet?text=${encText}`;
+        if(network==='wh') href = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        if(network==='tg') href = `https://t.me/share/url?url=${encUrl}&text=${encText}`;
+        if(network==='fb') href = `https://www.facebook.com/sharer/sharer.php?u=${encUrl}`;
+        if(network==='ig'){
+          // Fallback Instagram: copiar texto y descargar imagen para publicar manualmente
+          try{ await navigator.clipboard.writeText(text); }catch(_){}
+          const a=document.createElement('a'); a.download=`resultado_${perc}.png`; a.href=canvas.toDataURL('image/png'); a.click();
+          alert('Instagram no permite compartir directo desde la web. Te hemos copiado el texto y descargado la imagen para que la subas en tu app de Instagram.');
           return;
         }
-      }catch(e){}
 
-      // Subir imagen para tener URL pública
-      let imgUrl = '';
-      try{ imgUrl = (await uploadImage(canvas)).url; }catch(e){}
-
-      const text   = buildShareText(perc, pageUrl, imgUrl);
-      const encTxt = encodeURIComponent(text);
-      const encUrl = encodeURIComponent(pageUrl);
-
-      // Intent por red
-      let href = pageUrl;
-      if(network==='x')  href = `https://twitter.com/intent/tweet?text=${encTxt}`;
-      if(network==='wh') href = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      if(network==='tg') href = `https://t.me/share/url?url=${encUrl}&text=${encTxt}`;
-      if(network==='fb') href = `https://www.facebook.com/sharer/sharer.php?u=${encUrl}`;
-
-      window.open(href, '_blank');
+        window.open(href, '_blank');
+      }catch(e){
+        console.error(e);
+        alert('No se pudo abrir el diálogo de compartir. Inténtalo de nuevo.');
+      }
     }
 
     function downloadImage(){
@@ -310,21 +361,12 @@
     document.getElementById('share-wh').addEventListener('click', ()=>shareTo('wh'));
     document.getElementById('share-tg').addEventListener('click', ()=>shareTo('tg'));
     document.getElementById('share-fb').addEventListener('click', ()=>shareTo('fb'));
+    document.getElementById('share-ig').addEventListener('click', ()=>shareTo('ig'));
 
     document.getElementById('share-x-btm').addEventListener('click',  ()=>shareTo('x'));
     document.getElementById('share-wh-btm').addEventListener('click', ()=>shareTo('wh'));
     document.getElementById('share-tg-btm').addEventListener('click', ()=>shareTo('tg'));
     document.getElementById('share-fb-btm').addEventListener('click', ()=>shareTo('fb'));
+    document.getElementById('share-ig-btm').addEventListener('click', ()=>shareTo('ig'));
 
-    document.getElementById('copy-link').addEventListener('click', async()=>{ const url=encodeURL(); try{ await navigator.clipboard.writeText(url); alert('Enlace copiado'); }catch{ alert(url); } });
-    document.getElementById('copy-bottom').addEventListener('click', async()=>{ const url=encodeURL(); try{ await navigator.clipboard.writeText(url); alert('Enlace copiado'); }catch{ alert(url); } });
-
-    document.getElementById('download-img').addEventListener('click', downloadImage);
-    document.getElementById('download-bottom').addEventListener('click', downloadImage);
-
-    /* Restaurar desde ?s= si llega */
-    const initBits = new URL(location.href).searchParams.get('s'); if (initBits && initBits.length===20) setBits(initBits);
-    update();
-  </script>
-</body>
-</html>
+    document.getElementById('copy-link').addEventListener('click', async()=>{ const url=encodeURL(); try{ awai
