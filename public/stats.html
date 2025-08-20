@@ -4,23 +4,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Estadísticas | Encuesta</title>
+
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto; margin:0; background:#f6f7f9; color:#111}
+    :root{ --ink:#111; --muted:#667085; --card:#fff; --border:#e5e7eb; --soft:#eef3e7; --soft-b:#c8d6ae }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto; margin:0; background:#f6f7f9; color:var(--ink)}
     .wrap{max-width:1100px; margin:0 auto; padding:16px}
     h1{margin:.2rem 0 1rem}
     .cards{display:grid; gap:12px; grid-template-columns:repeat(1,minmax(0,1fr))}
     @media(min-width:900px){ .cards{ grid-template-columns: 2fr 1fr } }
-    .card{background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px; box-shadow:0 8px 24px rgba(0,0,0,.05)}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow:0 8px 24px rgba(0,0,0,.05)}
     .kpis{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
     @media(min-width:600px){ .kpis{grid-template-columns:repeat(4,minmax(0,1fr))} }
-    .kpi{background:#eef3e7; border:1px dashed #c8d6ae; border-radius:10px; padding:12px}
+    .kpi{background:var(--soft); border:1px dashed var(--soft-b); border-radius:10px; padding:12px}
     .kpi h3{margin:.2rem 0; font-size:.9rem; color:#555}
     .kpi .v{font-weight:800; font-size:1.4rem}
+
+    .chartbox{position:relative; width:100%; height:260px; /* ← alto fijo */ }
+    .chartbox.tall{height:320px}
+    .chartbox canvas{position:absolute; inset:0; width:100% !important; height:100% !important; display:block}
+
     table{width:100%; border-collapse:collapse}
     th,td{padding:8px; border-bottom:1px solid #eee; text-align:left}
     th{font-size:.9rem; color:#555}
+    .muted{color:var(--muted); font-size:.95rem}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Carga Chart.js con versión fija -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <div class="wrap">
@@ -36,17 +47,18 @@
     <div class="cards" style="margin-top:12px">
       <div class="card">
         <h2>Distribución de porcentajes (tramos de 5%)</h2>
-        <canvas id="chartBuckets" height="140"></canvas>
+        <div class="chartbox"><canvas id="chartBuckets"></canvas></div>
       </div>
       <div class="card">
         <h2>Acciones</h2>
-        <canvas id="chartActions" height="140"></canvas>
+        <div class="chartbox"><canvas id="chartActions"></canvas></div>
       </div>
     </div>
 
     <div class="card" style="margin-top:12px">
       <h2>Votos por cada una de las 20 opciones</h2>
-      <canvas id="chartItems" height="180"></canvas>
+      <div class="chartbox tall"><canvas id="chartItems"></canvas></div>
+      <p class="muted" style="margin:.5rem 0 0">Debajo, detalle en tabla:</p>
       <div style="margin-top:10px; overflow:auto">
         <table id="tbl">
           <thead><tr><th>#</th><th>Opción</th><th>Votos</th></tr></thead>
@@ -57,56 +69,108 @@
   </div>
 
   <script>
-  async function GET(url){ const r=await fetch(url); if(!r.ok) throw 0; return r.json(); }
+  // Helper fetch (misma origin, auth básica la gestiona el navegador)
+  async function GET(url){
+    const r = await fetch(url, {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }
+
+  function ensureChartJS(){
+    if(typeof window.Chart === 'undefined'){
+      const msg = document.createElement('p');
+      msg.className = 'muted';
+      msg.textContent = 'No se pudo cargar la librería de gráficos (Chart.js). Revisa tu conexión o el bloqueo de CDNs.';
+      document.querySelector('.wrap').appendChild(msg);
+      return false;
+    }
+    return true;
+  }
 
   (async function(){
-    // percent
-    const p = await GET('/api/stats/percent'); // { total,min,max,avg,buckets:[{bucket,count}], actions:{share,download} }
-    document.getElementById('k_total').textContent = p.total || 0;
-    document.getElementById('k_min').textContent   = (p.min ?? 0) + '%';
-    document.getElementById('k_max').textContent   = (p.max ?? 0) + '%';
-    document.getElementById('k_avg').textContent   = (p.avg ? (Math.round(p.avg*10)/10) : 0) + '%';
+    if(!ensureChartJS()) return;
 
+    // ----- Percent / KPIs -----
+    const p = await GET('/api/stats/percent'); // { total,min,max,avg,buckets:[{bucket,count}], actions:{share,download} }
+    document.getElementById('k_total').textContent = p.total ?? 0;
+    document.getElementById('k_min').textContent   = ((p.min ?? 0)|0) + '%';
+    document.getElementById('k_max').textContent   = ((p.max ?? 0)|0) + '%';
+    const avg = p.avg ? Math.round(p.avg * 10) / 10 : 0;
+    document.getElementById('k_avg').textContent   = avg + '%';
+
+    // ----- Buckets -----
     const labelsB = (p.buckets||[]).map(b=> b.bucket + '%');
-    const dataB   = (p.buckets||[]).map(b=> b.count);
+    const dataB   = (p.buckets||[]).map(b=> b.count|0);
 
     new Chart(document.getElementById('chartBuckets'), {
       type: 'bar',
-      data: { labels: labelsB, datasets: [{ label: 'Respuestas', data: dataB }] },
-      options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
+      data: {
+        labels: labelsB,
+        datasets: [{
+          label: 'Respuestas',
+          data: dataB
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        scales: {
+          y: { beginAtZero: true, ticks: { precision:0 } }
+        }
+      }
     });
 
-    // acciones
+    // ----- Acciones -----
     const shareCount    = (p.actions && p.actions.share)    || 0;
     const downloadCount = (p.actions && p.actions.download) || 0;
+
     new Chart(document.getElementById('chartActions'), {
       type: 'doughnut',
-      data: { labels:['Compartir','Descargar'], datasets:[{ data:[shareCount, downloadCount] }] },
-      options:{ responsive:true, maintainAspectRatio:false }
+      data: {
+        labels: ['Compartir', 'Descargar'],
+        datasets: [{ data: [shareCount, downloadCount] }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: { legend: { position: 'bottom' } }
+      }
     });
 
-    // items
+    // ----- Items (1..20) -----
     const items = await GET('/api/stats/items'); // [{opcion, votos}]
-    const byOpt = Array.from({length:20}, (_,i)=> {
-      const row = items.find(x=> +x.opcion === (i+1));
-      return row? +row.votos : 0;
+    const votes = Array.from({length:20}, (_,i)=>{
+      const row = items.find(x => +x.opcion === i+1);
+      return row ? +row.votos : 0;
     });
 
     new Chart(document.getElementById('chartItems'), {
       type: 'bar',
-      data: { labels: Array.from({length:20}, (_,i)=>`#${i+1}`), datasets:[{ label:'Votos', data: byOpt }] },
-      options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
+      data: {
+        labels: Array.from({length:20}, (_,i)=>`#${i+1}`),
+        datasets: [{ label:'Votos', data:votes }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        scales: { y: { beginAtZero: true, ticks:{ precision:0 } } }
+      }
     });
 
-    // tabla
+    // Tabla
     const tbody = document.querySelector('#tbl tbody');
-    byOpt.forEach((v,i)=>{
-      const tr=document.createElement('tr');
+    votes.forEach((v,i)=>{
+      const tr = document.createElement('tr');
       tr.innerHTML = `<td>${i+1}</td><td>Opción ${i+1}</td><td>${v}</td>`;
       tbody.appendChild(tr);
     });
-  })().catch(()=> alert('No se pudieron cargar las estadísticas'));
+  })().catch(err=>{
+    console.error(err);
+    alert('No se pudieron cargar las estadísticas.');
+  });
   </script>
 </body>
 </html>
-
