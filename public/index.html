@@ -134,6 +134,19 @@
   </div>
 
   <script src="/app.js?v=9"></script>
+<style id="mobile-donut-fix">
+  /* Evita que el donut se encoja en móviles */
+  .topbar { display:flex; align-items:center; gap:12px; }
+  .donut {
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;   /* 👈 tamaño fijo; no shrink */
+    display: block;   /* por si algún reset lo pone inline */
+  }
+  /* Asegura que el SVG no se desborde ni quede oculto */
+  .topbar svg.donut { overflow: visible; }
+</style>
+
 </body>
 </html>
 
