@@ -48,9 +48,9 @@ window.addEventListener('DOMContentLoaded', () => {
   byId('share-tg')?.addEventListener('click', ()=>shareTo('tg'));
   byId('share-fb')?.addEventListener('click', ()=>shareTo('fb'));
   byId('share-ig')?.addEventListener('click', ()=>shareTo('ig'));
- byId('download-bottom')?.addEventListener('click', downloadImage);
 
-  // Descargar (abajo)
+  // Descargar (arriba e inferior) 👉 ahora ambos usan la misma función
+  byId('download-img2') ?.addEventListener('click', downloadImage);
   byId('download-bottom')?.addEventListener('click', downloadImage);
 
   // Reiniciar
@@ -80,7 +80,7 @@ function update(){
   const p = Math.min(getChecked()*5,100);
   byId('arc').setAttribute('stroke-dasharray', `${(p/100)*CIRC} ${CIRC}`);
   byId('percent').textContent = `${p}%`;
-  byId('subtitle').textContent = `Porcentaje de coincidencia`;
+  byId('subtitle').textContent = `Porcentaje de coincidencia Facha`;
   document.title = `Coincidencia ${p}%`;
 }
 
@@ -106,7 +106,7 @@ function drawShareCanvas(perc){
   return c;
 }
 
-// === Backend helpers (opcional: registro de estadísticas si tu server tiene /api/share) ===
+// === Backend helpers (opcional) ===
 async function logEvent(perc, action){
   try{
     await fetch(`${API_BASE}/api/share`, {
@@ -167,7 +167,7 @@ async function shareTo(net){
 
 async function downloadImage(){
   const perc = Math.min(getChecked()*5,100);
-  await logEvent(perc,'download');         // si tu backend lo usa
+  await logEvent(perc,'download');
   const canvas = drawShareCanvas(perc);
   const a=document.createElement('a'); a.download=`resultado_${perc}.png`; a.href=canvas.toDataURL('image/png'); a.click();
 }
