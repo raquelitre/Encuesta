@@ -13,40 +13,61 @@
     body::after{content:"";position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));width:92px;height:60px;opacity:.18;z-index:0;
       background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="3" height="2" viewBox="0 0 3 2"><rect width="3" height="2" fill="%23aa151b"/><rect y="0.5" width="3" height="1" fill="%23f1bf00"/></svg>');
       background-size:cover;background-repeat:no-repeat;pointer-events:none;}
-    .container{max-width:1100px;margin:0 auto;padding:12px 14px 84px;position:relative;z-index:1}
-    header.site{ text-align:center; padding:12px; background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06) }
-    header h1{ margin:4px 0 2px; font-size:clamp(1.25rem,4vw,2rem) }
-    .lead{ color:var(--muted); margin:0 }
+    .container{max-width:1100px;margin:0 auto;padding:10px 12px 78px;position:relative;z-index:1}
 
-    .topbar{ position:sticky; top:env(safe-area-inset-top); z-index:20; display:flex; align-items:center; gap:10px; padding:10px;
+    header.site{ text-align:center; padding:10px; background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06) }
+    header h1{ margin:2px 0; font-size:clamp(1.15rem,3.6vw,1.8rem) }
+    .lead{ color:var(--muted); margin:0; font-size:.95rem }
+
+    /* Barra superior fija compacta */
+    .topbar{ position:sticky; top:env(safe-area-inset-top); z-index:20;
+      display:flex; align-items:center; gap:8px; padding:8px;
       background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.06); margin:10px 0 }
-    .donut{ width:74px; height:74px }
-    .percent{ font-weight:800; font-size:clamp(1.15rem,5vw,1.8rem); line-height:1 }
-    .sub{ color:var(--muted); font-size:.92rem }
+    .donut{ width:64px; height:64px }
+    .percent{ font-weight:800; font-size:clamp(1rem,4.5vw,1.5rem); line-height:1 }
+    .sub{ color:var(--muted); font-size:.85rem }
     .badge{ font-weight:800 }
-    .actions{ margin-left:auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap }
-    .btn{ border:0; background:var(--accent); color:#fff; padding:9px 11px; border-radius:12px; font-weight:700; cursor:pointer; line-height:1 }
-    .btn.ghost{ background:#e5e7eb; color:#111827 }
-    .btn.icon{ display:inline-flex; align-items:center; gap:6px; padding:9px 10px }
-    .btn.icon svg{ width:18px; height:18px; display:block }
-    .btn.x{  background:#000 }      .btn.wh{ background:#25D366 } .btn.tg{ background:#229ED9 } .btn.fb{ background:#1877F2 } .btn.ig{ background:#E4405F }
+    .actions{ margin-left:auto; display:flex; align-items:center; gap:6px; flex-wrap:nowrap }
 
-    .share-sticky{ position:fixed; left:0; right:0; bottom:0; z-index:25;
-      padding:8px calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
-      background:linear-gradient(180deg, rgba(246,247,249,0) 0%, rgba(246,247,249,1) 40%); }
-    .share-sticky .bar{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:8px; box-shadow:0 10px 30px rgba(0,0,0,.1) }
-    .share-sticky .btn{ padding:10px 12px }
+    /* Botón icon-only */
+    .iconbtn{
+      border:0; border-radius:10px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center;
+      cursor:pointer; box-shadow:0 1px 0 rgba(0,0,0,.05);
+    }
+    .iconbtn svg{ width:18px; height:18px; display:block; }
+    .icon-x  { background:#000;      }
+    .icon-wh { background:#25D366;   }
+    .icon-tg { background:#229ED9;   }
+    .icon-fb { background:#1877F2;   }
+    .icon-ig { background:#E4405F;   }
 
-    .grid{ display:grid; gap:12px; grid-template-columns:repeat(1,minmax(0,1fr)) }
+    .btn{ border:0; background:#e5e7eb; color:#111827; padding:8px 10px; border-radius:10px; font-weight:700; cursor:pointer }
+    .btn.small{ padding:6px 8px; font-size:.9rem }
+
+    /* Barra inferior fija compacta */
+    .share-sticky{
+      position:fixed; left:0; right:0; bottom:0; z-index:25;
+      padding:6px calc(8px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+      background:linear-gradient(180deg, rgba(246,247,249,0) 0%, rgba(246,247,249,1) 40%);
+    }
+    .share-sticky .bar{
+      display:flex; gap:6px; justify-content:center; align-items:center; flex-wrap:nowrap;
+      background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:6px; box-shadow:0 10px 30px rgba(0,0,0,.1)
+    }
+
+    /* Grid */
+    .grid{ display:grid; gap:10px; grid-template-columns:repeat(1,minmax(0,1fr)) }
     @media (min-width:640px){ .grid{ grid-template-columns:repeat(2,minmax(0,1fr)) } }
     @media (min-width:1024px){ .grid{ grid-template-columns:repeat(4,minmax(0,1fr)) } }
-    .card{ display:flex; align-items:flex-start; gap:12px; background:var(--card); border:1px dashed var(--card-border); border-radius:14px; padding:12px 14px }
+
+    .card{ display:flex; align-items:flex-start; gap:10px; background:var(--card); border:1px dashed var(--card-border); border-radius:12px; padding:10px 12px }
     .card:hover{ border-style:solid }
-    .card input[type=checkbox]{ transform:scale(1.2); accent-color:var(--accent); margin-top:2px }
+    .card input[type=checkbox]{ transform:scale(1.15); accent-color:var(--accent); margin-top:2px }
     .card label.card-body{ display:flex; gap:8px; align-items:flex-start; cursor:pointer; width:100% }
-    .card label.card-body img{ width:44px; height:44px; object-fit:contain; flex:0 0 auto }
-    .card label.card-body span{ font-size:1rem; line-height:1.35; display:block }
-    .footer-note{ color:var(--muted); font-size:.92rem; text-align:center; padding:8px 0 92px }
+    .card label.card-body img{ width:36px; height:36px; object-fit:contain; flex:0 0 auto }
+    .card label.card-body span{ font-size:.98rem; line-height:1.35; display:block }
+
+    .footer-note{ color:var(--muted); font-size:.9rem; text-align:center; padding:8px 0 82px }
   </style>
 </head>
 <body>
@@ -56,38 +77,61 @@
       <p class="lead">Marca con qué afirmaciones sueles coincidir. Cada una vale <strong>5%</strong>. Comparte tu resultado cuando quieras.</p>
     </header>
 
+    <!-- Barra superior fija -->
     <div class="topbar" role="status" aria-live="polite">
       <svg class="donut" viewBox="0 0 120 120" aria-hidden="true">
         <circle cx="60" cy="60" r="52" fill="none" stroke="#eef3e7" stroke-width="12"></circle>
-        <circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round" transform="rotate(-90 60 60)" stroke-dasharray="0 327"></circle>
+        <circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="12"
+                stroke-linecap="round" transform="rotate(-90 60 60)" stroke-dasharray="0 327"></circle>
       </svg>
       <div>
         <div class="percent" id="percent">0%</div>
         <div class="sub"><span class="badge" id="facha">Facha: 0%</span></div>
       </div>
+
+      <!-- Icon-only actions -->
       <div class="actions">
-        <button class="btn icon x"  id="share-x"  title="Compartir en X"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M21 3L3 21"/></svg> X</button>
-        <button class="btn icon wh" id="share-wh" title="WhatsApp"><svg viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 006.6 20.8L3 21l1-3.5A11 11 0 1020.5 3.5zm-1.9 14.7c-.3.9-1.6 1.5-2.6 1.7-.7.1-1.7.2-4-.9-3.4-1.5-5.5-4.9-5.6-5.1-.2-.3-1.3-1.7-1.3-3.3 0-1.6.8-2.4 1.1-2.8.3-.3.7-.4 1-.4h.7c.2 0 .5 0 .7.6.3.8 1 2.7 1.1 2.9.1.2.1.5 0 .7-.2.4-.5.7-.8 1-.2.1-.4.3-.2.7.2.4.9 1.5 1.9 2.4 1.3 1.2 2.4 1.6 2.8 1.8.3.1.6.1.8-.1.3-.4.9-1.1 1.1-1.5.3-.3.6-.3.9-.2.4.1 2.2 1 2.6 1.2.4.2.7.2.8.4.1.1.1.8-.2 1.5z"/></svg> WhatsApp</button>
-        <button class="btn icon tg" id="share-tg" title="Telegram"><svg viewBox="0 0 24 24" fill="#fff"><path d="M9.8 15.6l-.3 4.3c.4 0 .6-.2.8-.4l1.9-1.8 4.1 3c.7.4 1.2.2 1.4-.6l2.5-11.7c.2-.8-.3-1.1-1-.9L3.6 11.1c-.8.2-.8.7-.1.9l4.6 1.4 10.7-6.7-9 8.9z"/></svg> Telegram</button>
-        <button class="btn icon fb" id="share-fb" title="Facebook"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13 22v-8h3l1-4h-4V7c0-1.1.3-2 2-2h2V1.1C16.7 1 15.4 1 14 1c-3 0-5 1.8-5 5v3H6v4h3v8h4z"/></svg> Facebook</button>
-        <button class="btn icon ig" id="share-ig" title="Instagram"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18.5 6a1 1 0 110 2 1 1 0 010-2z"/></svg> Instagram</button>
-        <button class="btn ghost" id="copy-link">Copiar</button>
-        <button class="btn ghost" id="download-img">Descargar imagen</button>
-        <button class="btn ghost" id="reset">Reiniciar</button>
+        <button class="iconbtn icon-x"  id="share-x"  title="Compartir en X"        aria-label="Compartir en X">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M21 3L3 21"/></svg>
+        </button>
+        <button class="iconbtn icon-wh" id="share-wh" title="Compartir en WhatsApp" aria-label="Compartir en WhatsApp">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 006.6 20.8L3 21l1-3.5A11 11 0 1020.5 3.5zm-1.9 14.7c-.3.9-1.6 1.5-2.6 1.7-.7.1-1.7.2-4-.9-3.4-1.5-5.5-4.9-5.6-5.1-.2-.3-1.3-1.7-1.3-3.3 0-1.6.8-2.4 1.1-2.8.3-.3.7-.4 1-.4h.7c.2 0 .5 0 .7.6.3.8 1 2.7 1.1 2.9.1.2.1.5 0 .7-.2.4-.5.7-.8 1-.2.1-.4.3-.2.7.2.4.9 1.5 1.9 2.4 1.3 1.2 2.4 1.6 2.8 1.8.3.1.6.1.8-.1.3-.4.9-1.1 1.1-1.5.3-.3.6-.3.9-.2.4.1 2.2 1 2.6 1.2.4.2.7.2.8.4.1.1.1.8-.2 1.5z"/></svg>
+        </button>
+        <button class="iconbtn icon-tg" id="share-tg" title="Compartir en Telegram" aria-label="Compartir en Telegram">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M9.8 15.6l-.3 4.3c.4 0 .6-.2.8-.4l1.9-1.8 4.1 3c.7.4 1.2.2 1.4-.6l2.5-11.7c.2-.8-.3-1.1-1-.9L3.6 11.1c-.8.2-.8.7-.1.9l4.6 1.4 10.7-6.7-9 8.9z"/></svg>
+        </button>
+        <button class="iconbtn icon-fb" id="share-fb" title="Compartir en Facebook" aria-label="Compartir en Facebook">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M13 22v-8h3l1-4h-4V7c0-1.1.3-2 2-2h2V1.1C16.7 1 15.4 1 14 1c-3 0-5 1.8-5 5v3H6v4h3v8h4z"/></svg>
+        </button>
+        <button class="iconbtn icon-ig" id="share-ig" title="Compartir en Instagram" aria-label="Compartir en Instagram">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18.5 6a1 1 0 110 2 1 1 0 010-2z"/></svg>
+        </button>
+        <button class="btn small" id="download-img" title="Descargar imagen">Descargar</button>
+        <button class="btn small" id="reset" title="Borrar selecciones">Reiniciar</button>
       </div>
     </div>
 
     <form id="form"><div class="grid" id="grid"></div></form>
 
+    <!-- Barra inferior fija compacta -->
     <div class="share-sticky">
       <div class="bar">
-        <button class="btn icon x"  id="share-x-btm"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M21 3L3 21"/></svg>X</button>
-        <button class="btn icon wh" id="share-wh-btm"><svg viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 006.6 20.8L3 21l1-3.5A11 11 0 1020.5 3.5zm-1.9 14.7c-.3.9-1.6 1.5-2.6 1.7-.7.1-1.7.2-4-.9-3.4-1.5-5.5-4.9-5.6-5.1-.2-.3-1.3-1.7-1.3-3.3 0-1.6.8-2.4 1.1-2.8.3-.3.7-.4 1-.4h.7c.2 0 .5 0 .7.6.3.8 1 2.7 1.1 2.9.1.2.1.5 0 .7-.2.4-.5.7-.8 1-.2.1-.4.3-.2.7.2.4.9 1.5 1.9 2.4 1.3 1.2 2.4 1.6 2.8 1.8.3.1.6.1.8-.1.3-.4.9-1.1 1.1-1.5.3-.3.6-.3.9-.2.4.1 2.2 1 2.6 1.2.4.2.7.2.8.4.1.1.1.8-.2 1.5z"/></svg>WhatsApp</button>
-        <button class="btn icon tg" id="share-tg-btm"><svg viewBox="0 0 24 24" fill="#fff"><path d="M9.8 15.6l-.3 4.3c.4 0 .6-.2.8-.4l1.9-1.8 4.1 3c.7.4 1.2.2 1.4-.6l2.5-11.7c.2-.8-.3-1.1-1-.9L3.6 11.1c-.8.2-.8.7-.1.9l4.6 1.4 10.7-6.7-9 8.9z"/></svg>Telegram</button>
-        <button class="btn icon fb" id="share-fb-btm"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13 22v-8h3l1-4h-4V7c0-1.1.3-2 2-2h2V1.1C16.7 1 15.4 1 14 1c-3 0-5 1.8-5 5v3H6v4h3v8h4z"/></svg>Facebook</button>
-        <button class="btn icon ig" id="share-ig-btm"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18.5 6a1 1 0 110 2 1 1 0 010-2z"/></svg>Instagram</button>
-        <button class="btn ghost" id="copy-bottom">Copiar</button>
-        <button class="btn ghost" id="download-bottom">Descargar imagen</button>
+        <button class="iconbtn icon-x"  id="share-x-btm"  title="X" aria-label="Compartir en X">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M21 3L3 21"/></svg>
+        </button>
+        <button class="iconbtn icon-wh" id="share-wh-btm" title="WhatsApp" aria-label="Compartir en WhatsApp">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 006.6 20.8L3 21l1-3.5A11 11 0 1020.5 3.5zm-1.9 14.7c-.3.9-1.6 1.5-2.6 1.7-.7.1-1.7.2-4-.9-3.4-1.5-5.5-4.9-5.6-5.1-.2-.3-1.3-1.7-1.3-3.3 0-1.6.8-2.4 1.1-2.8.3-.3.7-.4 1-.4h.7c.2 0 .5 0 .7.6.3.8 1 2.7 1.1 2.9.1.2.1.5 0 .7-.2.4-.5.7-.8 1-.2.1-.4.3-.2.7.2.4.9 1.5 1.9 2.4 1.3 1.2 2.4 1.6 2.8 1.8.3.1.6.1.8-.1.3-.4.9-1.1 1.1-1.5.3-.3.6-.3.9-.2.4.1 2.2 1 2.6 1.2.4.2.7.2.8.4.1.1.1.8-.2 1.5z"/></svg>
+        </button>
+        <button class="iconbtn icon-tg" id="share-tg-btm" title="Telegram" aria-label="Compartir en Telegram">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M9.8 15.6l-.3 4.3c.4 0 .6-.2.8-.4l1.9-1.8 4.1 3c.7.4 1.2.2 1.4-.6l2.5-11.7c.2-.8-.3-1.1-1-.9L3.6 11.1c-.8.2-.8.7-.1.9l4.6 1.4 10.7-6.7-9 8.9z"/></svg>
+        </button>
+        <button class="iconbtn icon-fb" id="share-fb-btm" title="Facebook" aria-label="Compartir en Facebook">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M13 22v-8h3l1-4h-4V7c0-1.1.3-2 2-2h2V1.1C16.7 1 15.4 1 14 1c-3 0-5 1.8-5 5v3H6v4h3v8h4z"/></svg>
+        </button>
+        <button class="iconbtn icon-ig" id="share-ig-btm" title="Instagram" aria-label="Compartir en Instagram">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm10 2H7a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2.2a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6zM18.5 6a1 1 0 110 2 1 1 0 010-2z"/></svg>
+        </button>
+        <button class="btn small" id="download-bottom" title="Descargar imagen">Descargar</button>
       </div>
     </div>
 
@@ -96,9 +140,7 @@
 
   <script>
   window.addEventListener('DOMContentLoaded', () => {
-    const API_BASE = '';
     const SITE_URL = location.origin;
-
     const items = [
       "Creo que la ley no debe permitir partidos que busquen la ruptura de España",
       "Creo que en España se pagan demasiados impuestos",
@@ -122,7 +164,7 @@
       "Quiero que el bipartidismo deje de politizar la Justicia"
     ];
 
-    // Render grid
+    /* Render */
     const grid = document.getElementById('grid');
     items.forEach((text, i) => {
       const id = `i${i+1}`;
@@ -137,7 +179,7 @@
       `);
     });
 
-    // Donut & %
+    /* Porcentaje */
     const arc = document.getElementById('arc');
     const percentEl = document.getElementById('percent');
     const fachaEl = document.getElementById('facha');
@@ -159,7 +201,7 @@
     form.addEventListener('change', update);
     document.getElementById('reset').addEventListener('click', ()=>{ form.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=false); update(); history.replaceState({},'',location.pathname); });
 
-    // Share image (flag background)
+    /* Imagen con bandera */
     function drawShareCanvas(perc){
       const W=1200,H=630, c=document.createElement('canvas'); c.width=W; c.height=H; const ctx=c.getContext('2d');
       const stripe=H/3;
@@ -174,27 +216,16 @@
       ctx.fillStyle='#111827'; ctx.font='bold 72px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(`${perc}%`,cx,cy);
       ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font='32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#000';
       ctx.fillText('Realiza tu encuesta aquí:',60,300);
-      ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(location.origin,60,340);
+      ctx.font='bold 36px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(SITE_URL,60,340);
       return c;
     }
-    async function toBase64(c){ const b=await new Promise(r=>c.toBlob(r,'image/png',0.95)); return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result.split(',')[1]); fr.readAsDataURL(b); }); }
-    async function upload(c){
-      try{
-        const image_base64 = await toBase64(c);
-        const r = await fetch(`${API_BASE}/api/share-image`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({image_base64})});
-        if(!r.ok) throw 0; const j=await r.json(); return j.url;
-      }catch(_){ return ''; }
-    }
-    async function log(perc){ try{ await fetch(`${API_BASE}/api/share`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({bits:getBits(), percent:perc, user_agent:navigator.userAgent}), keepalive:true}); }catch(_){} }
-    const txt = (p,u,img)=> img?`Soy un ${p}% facha, ¿y tú?\nRealiza tu encuesta aquí: ${u}\nImagen: ${img}`:`Soy un ${p}% facha, ¿y tú?\nRealiza tu encuesta aquí: ${u}`;
 
     async function shareTo(net){
       const perc=Math.min(getChecked()*5,100);
-      await log(perc);
       const url=keepUrl();
       const canvas=drawShareCanvas(perc);
 
-      // Web Share con archivo para X/IG si existe
+      // Web Share con archivo para X/IG si está disponible
       try{
         const blob = await new Promise(r=>canvas.toBlob(r,'image/png',0.95));
         const file = new File([blob], `resultado_${perc}.png`, {type:'image/png'});
@@ -204,20 +235,20 @@
         }
       }catch(_){}
 
-      const imgUrl = await upload(canvas);
-      const message = txt(perc, url, imgUrl);
-      const encM = encodeURIComponent(message);
-      const encU = encodeURIComponent(url);
+      // Fallbacks
+      const encUrl = encodeURIComponent(url);
+      const text = `Soy un ${perc}% facha, ¿y tú?\nRealiza tu encuesta aquí: ${url}`;
+      const encText = encodeURIComponent(text);
 
       let href=url;
-      if(net==='x')  href=`https://twitter.com/intent/tweet?text=${encM}`;
-      if(net==='wh') href=`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-      if(net==='tg') href=`https://t.me/share/url?url=${encU}&text=${encM}`;
-      if(net==='fb') href=`https://www.facebook.com/sharer/sharer.php?u=${encU}`;
+      if(net==='x')  href=`https://twitter.com/intent/tweet?text=${encText}`;
+      if(net==='wh') href=`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      if(net==='tg') href=`https://t.me/share/url?url=${encUrl}&text=${encText}`;
+      if(net==='fb') href=`https://www.facebook.com/sharer/sharer.php?u=${encUrl}`;
       if(net==='ig'){
-        try{ await navigator.clipboard.writeText(message);}catch(_){}
+        // Descargar imagen y mostrar aviso
         const a=document.createElement('a'); a.download=`resultado_${perc}.png`; a.href=canvas.toDataURL('image/png'); a.click();
-        alert('Instagram no permite compartir directo desde web. Hemos copiado el texto y descargado la imagen.');
+        alert('Instagram no permite compartir desde el navegador. Hemos descargado la imagen; pega el texto: \\n\\n' + text);
         return;
       }
       window.open(href,'_blank');
@@ -230,22 +261,20 @@
     document.getElementById('share-tg').onclick=()=>shareTo('tg');
     document.getElementById('share-fb').onclick=()=>shareTo('fb');
     document.getElementById('share-ig').onclick=()=>shareTo('ig');
-    document.getElementById('copy-link').onclick=async()=>{ const u=keepUrl(); try{ await navigator.clipboard.writeText(u); alert('Enlace copiado'); }catch{ alert(u);} };
     document.getElementById('download-img').onclick=downloadImage;
 
-    // listeners barra inferior
+    // barra inferior
     document.getElementById('share-x-btm').onclick=()=>shareTo('x');
     document.getElementById('share-wh-btm').onclick=()=>shareTo('wh');
     document.getElementById('share-tg-btm').onclick=()=>shareTo('tg');
     document.getElementById('share-fb-btm').onclick=()=>shareTo('fb');
     document.getElementById('share-ig-btm').onclick=()=>shareTo('ig');
-    document.getElementById('copy-bottom').onclick=async()=>{ const u=keepUrl(); try{ await navigator.clipboard.writeText(u); alert('Enlace copiado'); }catch{ alert(u);} };
     document.getElementById('download-bottom').onclick=downloadImage;
 
-    // estado inicial desde ?s=
+    // estado inicial
     const s=new URL(location.href).searchParams.get('s'); if(s && s.length===20) setBits(s);
     update();
   });
   </script>
 </body>
-                                                                           </html>
+      </html>
