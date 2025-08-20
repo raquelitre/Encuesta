@@ -107,5 +107,36 @@ app.use('/share', express.static(IMG_DIR, { maxAge: '365d', immutable: true }));
 // Protect /stats.html via basic auth
 app.get('/stats.html', basicAuth, (req,res,next)=> next());
 app.use(express.static(path.join(__dirname_, 'public')));
+// === Ruta de estadísticas ===
+app.get("/stats", async (req, res) => {
+  try {
+    const sqlite3 = require("sqlite3");
+    const { open } = require("sqlite");
 
+    const db = await open({
+      filename: "./data/encuesta.db",  // ajusta si tu DB tiene otro nombre
+      driver: sqlite3.Database
+    });
+
+    // Total de encuestas realizadas
+    const totalUsuarios = await db.get("SELECT COUNT(*) as total FROM respuestas");
+
+    // Opciones más votadas
+    const masVotadas = await db.all(`
+      SELECT opcion, COUNT(*) as votos 
+      FROM respuestas_detalle 
+      GROUP BY opcion 
+      ORDER BY votos DESC
+    `);
+
+    res.json({
+      totalUsuarios: totalUsuarios.total,
+      masVotadas
+    });
+
+  } catch (err) {
+    console.error("Error en /stats", err);
+    res.status(500).json({ error: "Error al obtener estadísticas" });
+  }
+});
 app.listen(PORT, () => console.log(`App on :${PORT}`));
