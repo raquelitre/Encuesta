@@ -27,6 +27,33 @@ const items = [
 ];
 
 // === Render inicial ===
+document.addEventListener("DOMContentLoaded", () => {
+  const checkboxes = document.querySelectorAll("input[type=checkbox]");
+  const percentEl = document.getElementById("percent");
+  const circleEl = document.getElementById("percentCircle");
+  
+  function updatePercent() {
+    let checked = 0;
+    checkboxes.forEach(cb => {
+      if (cb.checked) checked++;
+    });
+    let percent = checked * 5; // Cada respuesta vale 5%
+    if (percentEl) {
+      percentEl.textContent = percent + "%";
+    }
+    if (circleEl) {
+      circleEl.style.background = `conic-gradient(
+        #2ecc71 ${percent}%, 
+        #eee ${percent}%
+      )`;
+    }
+  }
+
+  checkboxes.forEach(cb => cb.addEventListener("change", updatePercent));
+
+  // inicializa al cargar
+  updatePercent();
+});
 window.addEventListener('DOMContentLoaded', () => {
   const grid = document.getElementById('grid');
   items.forEach((text, i) => {
